@@ -21,4 +21,5 @@ const result = await app.invoke({
 console.log("🍽️ Agent Response:");
 console.log(result.messages[result.messages.length - 1].content);
 
-console.log("\n📝 For more examples, run: npx tsx src/examples.mts");
+console.log("\n🎯 Want to chat interactively? Run: npm run chat");
+console.log("📝 For more examples, run: npm run examples");

@@ -18,6 +18,7 @@ The agent can:
 langgraph-js-sample/
 ├── src/
 │   ├── agent.mts              # Main LangGraph agent implementation
+│   ├── interactive.mts        # Interactive CLI interface
 │   ├── examples.mts           # Comprehensive examples
 │   └── tools/
 │       └── mcpTools.mts       # MCP server integration tools
@@ -56,9 +57,29 @@ langgraph-js-sample/
 ## Available Scripts
 
 - `npm start` - Run the simple demo
+- `npm run chat` - **Interactive chat mode** 💬
 - `npm run examples` - Run comprehensive examples
 - `npm run agent` - Run the agent directly
-- `npx tsx src/agent.mts` - Direct agent execution
+
+## Interactive Mode
+
+Start an interactive chat session with the agent:
+```bash
+npm run chat
+```
+
+Then you can chat naturally:
+```
+🤖 You: add mrkev to the shopping cart
+🤖 You: get me a few gluten-free polívka recipes  
+🤖 You: what's on my shopping list?
+🤖 You: clear my shopping list
+```
+
+Special commands:
+- `help` - Show available commands
+- `clear` or `reset` - Clear conversation history
+- `exit` or `quit` - Exit the application
 
 ## Environment Variables
 

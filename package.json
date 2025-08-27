@@ -8,6 +8,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npx tsx main.mts",
+    "chat": "npx tsx src/interactive.mts",
     "examples": "npx tsx src/examples.mts",
     "agent": "npx tsx src/agent.mts",
     "test": "echo \"Error: no test specified\" && exit 1"
