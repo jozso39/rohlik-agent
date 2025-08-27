@@ -5,12 +5,19 @@
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "dist/main.js",
   "scripts": {
-    "start": "npx tsx main.mts",
-    "chat": "npx tsx src/interactive.mts",
-    "examples": "npx tsx src/examples.mts",
-    "agent": "npx tsx src/agent.mts",
+    "build": "swc . -d dist --ignore node_modules,docs,dist",
+    "build:ts": "tsc --build --verbose",
+    "start": "npm run build && node dist/main.js",
+    "chat": "npm run build && node dist/src/interactive.js",
+    "examples": "npm run build && node dist/src/examples.js",
+    "agent": "npm run build && node dist/src/agent.js",
+    "dev:start": "npx tsx main.ts",
+    "dev:chat": "npx tsx src/interactive.ts",
+    "dev:examples": "npx tsx src/examples.ts",
+    "dev:agent": "npx tsx src/agent.ts",
+    "clean": "rm -rf dist *.tsbuildinfo",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -21,5 +28,11 @@
     "@langchain/tavily": "^0.1.5",
     "dotenv": "^17.2.1",
     "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@swc/cli": "^0.7.8",
+    "@swc/core": "^1.13.5",
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2"
   }
 }

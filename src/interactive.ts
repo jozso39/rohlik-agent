@@ -4,7 +4,7 @@
 import "dotenv/config";
 
 import { HumanMessage } from "@langchain/core/messages";
-import { app } from "./agent.mts";
+import { app } from "./agent";
 import * as readline from "readline";
 import { stdin as input, stdout as output } from "process";
 

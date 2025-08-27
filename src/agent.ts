@@ -9,7 +9,7 @@ import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
-import { mcpTools } from "./tools/mcpTools.mts";
+import { mcpTools } from "./tools/mcpTools";
 
 // Define the tools for the agent to use
 const tools = [new TavilySearch({ maxResults: 3 }), ...mcpTools];
@@ -56,23 +56,29 @@ const app = workflow.compile();
 export { app };
 
 // If this file is run directly, execute the main example
-if (import.meta.url === `file://${process.argv[1]}`) {
-    // Use the agent
-    const finalState = await app.invoke({
-        messages: [
-            new HumanMessage(
-                "I want to cook something vegetarian tonight. Can you help me find a vegetarian recipe and add the ingredients to my shopping list?",
-            ),
-        ],
-    });
-    console.log(finalState.messages[finalState.messages.length - 1].content);
+if (require.main === module) {
+    async function runAgent() {
+        // Use the agent
+        const finalState = await app.invoke({
+            messages: [
+                new HumanMessage(
+                    "I want to cook something vegetarian tonight. Can you help me find a vegetarian recipe and add the ingredients to my shopping list?",
+                ),
+            ],
+        });
+        console.log(
+            finalState.messages[finalState.messages.length - 1].content,
+        );
 
-    const nextState = await app.invoke({
-        // Including the messages from the previous run gives the LLM context.
-        messages: [
-            ...finalState.messages,
-            new HumanMessage("Can you show me my current shopping list?"),
-        ],
-    });
-    console.log(nextState.messages[nextState.messages.length - 1].content);
+        const nextState = await app.invoke({
+            // Including the messages from the previous run gives the LLM context.
+            messages: [
+                ...finalState.messages,
+                new HumanMessage("Can you show me my current shopping list?"),
+            ],
+        });
+        console.log(nextState.messages[nextState.messages.length - 1].content);
+    }
+
+    runAgent().catch(console.error);
 }

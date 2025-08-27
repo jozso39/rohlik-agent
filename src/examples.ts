@@ -4,7 +4,7 @@
 import "dotenv/config";
 
 import { HumanMessage } from "@langchain/core/messages";
-import { app } from "./agent.mts";
+import { app } from "./agent";
 
 async function runExamples() {
     console.log("🤖 Starting LangGraph MCP Examples\n");
