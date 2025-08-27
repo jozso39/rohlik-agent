@@ -1,0 +1,24 @@
+{
+  "name": "langgraph-js-sample",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx tsx main.mts",
+    "examples": "npx tsx src/examples.mts",
+    "agent": "npx tsx src/agent.mts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.3.53",
+    "@langchain/core": "^0.3.72",
+    "@langchain/langgraph": "^0.4.6",
+    "@langchain/openai": "^0.6.9",
+    "@langchain/tavily": "^0.1.5",
+    "dotenv": "^17.2.1",
+    "zod": "^3.25.76"
+  }
+}

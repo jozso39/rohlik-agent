@@ -1,0 +1,188 @@
+openapi: 3.0.0
+info:
+  title: Shopping List MCP Server
+  description: A Model Context Protocol server for managing shopping lists and recipes
+  version: 1.0.0
+servers:
+  - url: http://localhost:8001
+    description: Local development server
+
+paths:
+  /get_recipes:
+    get:
+      summary: Get all recipes
+      description: Returns a list of all available recipes
+      responses:
+        "200":
+          description: A list of recipes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recipes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Recipe"
+
+  /search_recipes:
+    get:
+      summary: Search recipes
+      description: Search recipes by diet, meal type, and/or name
+      parameters:
+        - name: diet
+          in: query
+          description: Filter recipes by diet category (e.g., vegetarian, vegan, high-protein)
+          required: false
+          schema:
+            type: string
+        - name: meal_type
+          in: query
+          description: Filter recipes by meal type (e.g., polévka, hlavní chod, desert)
+          required: false
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: Search recipes by name (partial match)
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Number of recipes found
+                  recipes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Recipe"
+        "400":
+          description: Bad request - missing search parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Please provide at least one search parameter: 'diet', 'meal_type', or 'name'"
+
+  /add_ingredients:
+    post:
+      summary: Add ingredients to shopping list
+      description: Add multiple ingredients to the shopping list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ingredients
+              properties:
+                ingredients:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Mléko", "Cibule", "Chléb"]
+      responses:
+        "200":
+          description: Ingredients added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "3 ingredients added"
+                  shopping_list:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /get_shopping_list:
+    get:
+      summary: Get current shopping list
+      description: Returns the current shopping list
+      responses:
+        "200":
+          description: Current shopping list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shopping_list:
+                    type: array
+                    items:
+                      type: string
+
+  /clear_shopping_list:
+    post:
+      summary: Clear shopping list
+      description: Remove all items from the shopping list
+      responses:
+        "200":
+          description: Shopping list cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Shopping list cleared"
+
+components:
+  schemas:
+    Recipe:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the recipe
+        name:
+          type: string
+          description: Name of the recipe
+        ingredients:
+          type: array
+          items:
+            type: string
+          description: List of ingredients needed for the recipe
+        steps:
+          type: string
+          description: Cooking instructions
+        diet:
+          type: array
+          items:
+            type: string
+          description: Diet categories (e.g., vegetarian, vegan, high-protein)
+        meal_type:
+          type: array
+          items:
+            type: string
+          description: Meal type categories (e.g., polévka, hlavní chod, desert)
+      required:
+        - id
+        - name
+        - ingredients
+        - steps
+        - diet
+        - meal_type
