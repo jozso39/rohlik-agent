@@ -1,84 +1,142 @@
-# LangGraph.js MCP Server Integration Sample
+# Shopping List MCP Server
 
-This project demonstrates how to integrate a Model Context Protocol (MCP) server with LangGraph.js to create an intelligent agent that can manage recipes and shopping lists.
+This project implements a simple MCP server that serves as a database for managing shopping lists based on recipes. The server is built using Flask and interacts with a dataset of recipes stored in a CSV file.
+It was created to serve a [Rohlík AI ReAct Agent](https://github.com/jozso39/rohlik-agent-js). Both of the projects have to be used simultaniously.
+Both of the projects are created as an interview assignmnent to [Rohlík](https://www.rohlik.cz/) company. There is no intention to deploy this code or use it in production.
 
-## Features
+# Instalation
+```
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-The agent can:
-- Search for recipes by diet type, meal type, or name
-- Get all available recipes
-- Add ingredients to a shopping list
-- View the current shopping list
-- Clear the shopping list
-- Use web search (via Tavily) for general questions
+# Usage
+```
+python shopping_list_mcp_server/server.py
+```
 
-## Setup
+## Tests
+```
+python -m unittest tests/test_api.py
+```
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+## Endpoints
 
-2. **Set up your environment variables:**
-   Copy the `.env.example` file to `.env` and add your actual API keys:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Then edit the `.env` file with your actual API keys:
-   ```
-   OPENAI_API_KEY=your_openai_api_key_here
-   TAVILY_API_KEY=your_tavily_api_key_here
-   MCP_BASE_URL=http://localhost:8001
-   ```
+### Get Shopping List
+- **URL**: `/get_shopping_list`
+- **Method**: `GET`
+- **Success Response**:
+  - **Code**: 200
+  - **Content**:
+    ```json
+    {
+        "shopping_list": ["Mléko", "Cibule", "Chléb"]
+    }
+    ```
 
-3. **Start the MCP server:**
-   Make sure your Shopping List MCP server is running on `http://localhost:8001`
+### Search Recipes
+- **URL**: `/search_recipes`
+- **Method**: `GET`
+- **Query Parameters**:
+  - `diet` (optional): Search recipes by diet category (e.g., "vegetarian", "vegan", "high-protein")
+  - `meal_type` (optional): Search recipes by meal type (e.g., "polévka", "hlavní chod", "desert")
+  - `name` (optional): Search recipes by name
+- **Success Response**:
+  - **Code**: 200
+  - **Content**:
+    ```json
+    {
+        "count": 1,
+        "recipes": [
+            {
+                "id": "12",
+                "ingredients": ["Cibule", "Cukr krupice", "..."],
+                "name": "Hrášková krémová polévka",
+                "steps": "...",
+                "diet": ["vegetarian"],
+                "meal_type": ["polévka"]
+            }
+        ]
+    }
+    ```
 
-4. **Run the agent:**
-   ```bash
-   npx tsx agent.mts
-   ```
+### Get All Recipes
+- **URL**: `/get_recipes`
+- **Method**: `GET`
+- **Success Response**:
+  - **Code**: 200
+  - **Content**:
+    ```json
+    {
+        "recipes": [
+            {
+            "id": "10",
+            "ingredients": [
+                "Bobkový list",
+                "Drcený kmín"
+            ],
+            "name": "Hovězí guláš s karlovarským knedlíkem",
+            "steps": "...",
+            "diet": ["masité", "high-protein"],
+            "meal_type": ["hlavní chod"]
+        }
+        ]
+    }
+    ```
 
-   Or run the comprehensive examples:
-   ```bash
-   npx tsx example.mts
-   ```
+### Add Multiple Ingredients to Shopping List
+- **URL**: `/add_ingredients`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+      "ingredients": ["Mléko", "Cibule", "Chléb"]
+  }
+  ```
+- **Success Response**:
+  - **Code**: 200
+  - **Content**:
+    ```json
+    {
+        "message": "3 ingredients added",
+        "shopping_list": ["Mléko", "Cibule", "Chléb"]
+    }
+    ```
 
-## File Structure
+### Remove Ingredients from Shopping List
+- **URL**: `/remove_ingredients`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+      "ingredients": ["Cibule", "Máslo", "Neexistuje"]
+  }
+  ```
+- **Success Response**:
+  - **Code**: 200
+  - **Content**:
+    ```json
+    {
+        "shopping_list": ["Mléko", "Chléb"]
+    }
+    ```
 
-- `agent.mts` - Main agent implementation with MCP tools
-- `mcpTools.mts` - Custom tools for interacting with the MCP server
-- `example.mts` - Comprehensive examples showing all MCP functionality
-- `package.json` - Project dependencies
+#### Clear Shopping List
+- **URL**: `/clear_shopping_list`
+- **Method**: `POST`
+- **Success Response**:
+  - **Code**: 200
+  - **Content**:
+    ```json
+    {
+        "message": "Shopping list cleared"
+    }
+    ```
 
-## MCP Tools Available
+## TODO: Future Enhancements
 
-### Recipe Management
-- **search_recipes**: Search recipes by diet, meal type, or name
-- **get_all_recipes**: Get all available recipes
-
-### Shopping List Management
-- **add_ingredients_to_shopping_list**: Add ingredients to shopping list
-- **get_shopping_list**: View current shopping list
-- **clear_shopping_list**: Clear all items from shopping list
-
-## Example Interactions
-
-The agent can handle natural language requests like:
-- "Find me vegetarian soup recipes"
-- "Add ingredients from that recipe to my shopping list"
-- "What's on my shopping list?"
-- "Clear my shopping list"
-- "Find me some dessert recipes"
-
-## MCP Server Requirements
-
-This project assumes you have a Shopping List MCP server running that provides the following endpoints:
-- `GET /get_recipes`
-- `GET /search_recipes`
-- `POST /add_ingredients`
-- `GET /get_shopping_list`
-- `POST /clear_shopping_list`
-
-See the included `swagger.yaml` for the complete API specification.
+- integrating a more robust database solution (e.g., SQLite or PostgreSQL) for better data management as the project scales.
+- user authentication

@@ -8,6 +8,45 @@ servers:
     description: Local development server
 
 paths:
+  /remove_ingredients:
+    post:
+      summary: Remove ingredients from shopping list
+      description: Remove specified ingredients from the shopping list. Ingredients not present are ignored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ingredients
+              properties:
+                ingredients:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Cibule", "Máslo", "Neexistuje"]
+      responses:
+        "200":
+          description: Ingredients removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shopping_list:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
   /get_recipes:
     get:
       summary: Get all recipes
