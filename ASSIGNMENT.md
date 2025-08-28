@@ -23,8 +23,6 @@ Your task is to design and build a functional proof-of-concept AI agent that hel
 - The agent must present the final meal plan and the complete shopping list to the user.
 - The agent must maintain conversational memory to handle at least one follow-up request, such as "Actually, can you replace the Day 2 recipe with something else?"
 
----
-
 # 3. Key Technical Requirements
 
 This is not just about writing a script. We want to see how you build a robust, extensible system. You might need to simplify some parts and we want to see where you have chosen to do so.
@@ -40,16 +38,12 @@ This is not just about writing a script. We want to see how you build a robust, 
 Please use this pre-existing dataset of recipes:  
 [Recipe Dataset](https://drive.google.com/file/d/1Ny9T_DUK0fLaisvATVAlwSdS4QoNtagb/view?usp=sharing)
 
----
-
 # 4. Deliverables
 
 - **Source Code:** All Python code for the agent, the MCP server, and any data processing scripts, submitted as a Git repository link or a zip file.
 - **System Design:** A brief document covering:
 	- A high-level architecture diagram of your solution.
 	- A short explanation of your key technical choices (Why this agent framework? Why this model?).
-
----
 
 # 5. Evaluation Criteria
 
@@ -58,24 +52,3 @@ We are assessing your skills as a senior technical leader. The evaluation will b
 - **Effectiveness of the Agentic System (60%):** Does the agent successfully plan and use tools to fulfill the user's request? Is the logic sound and robust?
 - **Technical Architecture & Tooling (30%):** What frameworks and design choices you made and is the logic of that sound?
 - **Clarity & Code Quality (10%):** Is the code well-structured and easy to understand? Is the design write-up clear and concise?
-
-
-
-
-5. Evaluation Criteria
-
-We are assessing your skills as a senior technical leader. The evaluation will be weighted as follows:
-
-
-
-
-
-Effectiveness of the Agentic System (60%): Does the agent successfully plan and use tools to fulfill the user's request? Is the logic sound and robust?
-
-
-
-Technical Architecture & Tooling (30%): What frameworks and design choices you made and is the logic of that sound?
-
-
-
-Clarity & Code Quality (10%): Is the code well-structured and easy to understand? Is the design write-up clear and concise?*
