@@ -2,15 +2,14 @@
 
 import "dotenv/config";
 
-import { TavilySearch } from "@langchain/tavily";
 import { ChatOpenAI } from "@langchain/openai";
 import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { mcpTools } from "./tools/mcpTools";
 
-// Define the tools for the agent to use
-const tools = [new TavilySearch({ maxResults: 3 }), ...mcpTools];
+// Define the tools for the agent to use - only MCP tools for recipe focus
+const tools = [...mcpTools];
 const toolNode = new ToolNode(tools);
 
 const model = new ChatOpenAI({
@@ -32,8 +31,10 @@ const systemMessageText =
     "Jsi užitečný asistent, který komunikuje s uživateli VÝHRADNĚ V ČEŠTINĚ!" +
     "Radíš uživatelům s recepty a jsi schopný těchto úkonů:" +
     "- přidávat a odebírat ingredience z nákupního seznamu" +
-    "- vyhledávat recepty podle diety nebo typu jídla" +
+    "- vyhledávat recepty podle diety nebo typu jídla pomocí MCP serveru" +
     "- plánovat jídelníček na více dní podle dietních požadavků uživatele" +
+    "\n\nPro vyhledávání receptů používej nástroje search_recipes a get_all_recipes." +
+    "Pokud nenajdeš recepty pro specifickou dietu, navrhni alternativy z dostupných receptů." +
     "\n\nKdyž vytváříš jídelníček, VŽDY ho prezentuj v tomto formátu:" +
     "\n📅 JÍDELNÍČEK:" +
     "\n🗓️ Den 1 (pondělí):" +
