@@ -6,6 +6,7 @@ import "dotenv/config";
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { app } from "./agent";
 import { clearShoppingListTool } from "./tools/mcpTools";
+import { checkMCPServer } from "./utils/mcpHealthCheck";
 import * as readline from "readline";
 import { stdin as input, stdout as output } from "process";
 
@@ -133,5 +134,10 @@ rl.on("SIGINT", () => {
     });
 });
 
-// Start the interactive session
-rl.prompt();
+// Start the interactive session after checking MCP server
+async function startInteractiveSession() {
+    await checkMCPServer();
+    rl.prompt();
+}
+
+startInteractiveSession();

@@ -5,11 +5,14 @@ import "dotenv/config";
 
 import { HumanMessage } from "@langchain/core/messages";
 import { app } from "./src/agent";
+import { checkMCPServer } from "./src/utils/mcpHealthCheck";
 
 console.log("🤖 RohBot Demo");
 console.log("=====================================\n");
 
 async function main() {
+    await checkMCPServer();
+    
     const humanMessageText =
         "Chci abys mi vytvořil jídelníček na 3 dny dopředu. vytvoř mi i dokument s tímto plánem. Jsem vegetarian";
     console.log(
