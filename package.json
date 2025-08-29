@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "dist/main.js",
   "scripts": {
-    "build": "swc . -dq dist --ignore node_modules,docs,dist",
+    "build": "swc . -d dist --ignore node_modules,docs,dist -q",
     "build:ts": "tsc --build --verbose",
     "demo": "npm run build && node dist/main.js",
     "chat": "npm run build && node dist/src/interactive.js",

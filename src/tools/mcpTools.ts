@@ -297,12 +297,12 @@ export const createMealPlanTool = new DynamicStructuredTool({
                 });
 
                 sortedMeals.forEach((meal) => {
-                    // const emoji = emoji[meal.meal_type];
+                    const emoji = mealEmojis[meal.meal_type] || "🍽️";
                     const capitalizedMealType =
                         meal.meal_type.charAt(0).toUpperCase() +
                         meal.meal_type.slice(1);
                     mealPlanText +=
-                        ` * ${capitalizedMealType}: ${meal.recipe_name}\n`;
+                        `  • ${emoji} ${capitalizedMealType}: ${meal.recipe_name}\n`;
                 });
                 mealPlanText += `\n`;
             });
