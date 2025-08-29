@@ -43,8 +43,8 @@ console.log(
 // Function to process user input
 async function processUserInput(userInput: string) {
     if (
-        userInput.trim() === "KONEC" ||
-        userInput.trim() === "STAČILO"
+        userInput.toLowerCase().trim() === "konec" ||
+        userInput.toLowerCase().trim() === "stačilo"
     ) {
         console.log(goodbyeMessage);
         rl.close();
@@ -52,7 +52,7 @@ async function processUserInput(userInput: string) {
     }
 
     if (
-        userInput.trim() === "RESET"
+        userInput.toLowerCase().trim() === "reset"
     ) {
         conversationHistory = [];
 
@@ -74,7 +74,7 @@ async function processUserInput(userInput: string) {
         return;
     }
 
-    if (userInput.trim() === "POMOC") {
+    if (userInput.toLowerCase().trim() === "pomoc") {
         console.log("\n🆘 Možnosti:");
         console.log(
             "   • Bavte se přirozeně s agentem, ptejte se na recepty a přípravu jídelníčku nebo o upravení nákupního seznamu.",
