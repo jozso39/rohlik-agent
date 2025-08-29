@@ -174,13 +174,51 @@ export const clearShoppingListTool = new DynamicStructuredTool({
     },
 });
 
-// TODO: add remove ingredient tool
+// Tool for removing ingredients from shopping list
+export const removeIngredientsFromShoppingListTool = new DynamicStructuredTool({
+    name: "remove_ingredients_from_shopping_list",
+    description:
+        "Odstraní specifické ingredience z nákupního seznamu. Ingredience, které nejsou v seznamu, budou ignorovány. Užitečné pro úpravu nákupního seznamu nebo když se uživatel rozhodne některé položky nechtít.",
+    schema: z.object({
+        ingredients: z.array(z.string()).describe(
+            "Array s názvy ingrediencí k odstranění z nákupního seznamu",
+        ),
+    }),
+    func: async ({ ingredients }) => {
+        try {
+            console.log(
+                "LOG: removing ingredients from cart 🗑️: " +
+                    ingredients.join(", "),
+            );
+
+            const response = await fetch(`${MCP_BASE_URL}/remove_ingredients`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ ingredients }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return JSON.stringify(data, null, 2);
+        } catch (error) {
+            return `Error removing ingredients: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`;
+        }
+    },
+});
 
 // Export all MCP tools as an array
 export const mcpTools = [
     searchRecipesTool,
     getAllRecipesTool,
     addIngredientsToShoppingListTool,
+    removeIngredientsFromShoppingListTool,
     getShoppingListTool,
     clearShoppingListTool,
 ];
