@@ -215,14 +215,13 @@ export const createMealPlanTool = new DynamicStructuredTool({
             day_name: z.string().describe(
                 "Název dne (např. 'Den 1 - Pondělí')",
             ),
-            breakfast: z.string().optional().describe(
-                "Název receptu na snídani",
-            ),
-            lunch: z.string().describe("Název receptu na oběd"),
-            dinner: z.string().describe("Název receptu na večeři"),
-            snacks: z.array(z.string()).optional().describe(
-                "Volitelné svačiny/dezerty",
-            ),
+            meals: z.array(z.object({
+                meal_type: z.enum(["snídaně", "oběd", "večeře", "svačina"])
+                    .describe(
+                        "Typ jídla - snídaně, oběd, večeře nebo svačina",
+                    ),
+                recipe_name: z.string().describe("Název receptu"),
+            })).describe("Seznam jídel pro daný den"),
         })).describe("Array objektů pro jednotlivé dny"),
     }),
     func: async ({ title, days }) => {
@@ -231,12 +230,9 @@ export const createMealPlanTool = new DynamicStructuredTool({
             const allRecipeNames = new Set<string>();
 
             days.forEach((day) => {
-                if (day.breakfast) allRecipeNames.add(day.breakfast);
-                allRecipeNames.add(day.lunch);
-                allRecipeNames.add(day.dinner);
-                if (day.snacks) {
-                    day.snacks.forEach((snack) => allRecipeNames.add(snack));
-                }
+                day.meals.forEach((meal) => {
+                    allRecipeNames.add(meal.recipe_name);
+                });
             });
 
             console.log(
@@ -287,17 +283,31 @@ export const createMealPlanTool = new DynamicStructuredTool({
             // Create formatted meal plan text with complete recipes
             let mealPlanText = `# ${title}\n\n`;
 
-            days.forEach((day, index) => {
+            // Meal type emoji mapping
+            const mealEmojis = {
+                "snídaně": "🥐",
+                "oběd": "🍽️",
+                "večeře": "🌙",
+                "svačina": "🍪",
+            };
+
+            days.forEach((day) => {
                 mealPlanText += `## ${day.day_name}\n\n`;
 
                 // Helper function to format recipe with complete details
                 const formatRecipe = (recipeName: string, mealType: string) => {
                     const recipe = recipeDetails.get(recipeName);
+                    const emoji =
+                        mealEmojis[mealType as keyof typeof mealEmojis] || "🍽️";
+                    const capitalizedMealType =
+                        mealType.charAt(0).toUpperCase() + mealType.slice(1);
+
                     if (!recipe) {
-                        return `### ${mealType}: ${recipeName}\n\n*Recept nebyl nalezen.*\n\n`;
+                        return `### ${emoji} ${capitalizedMealType}: ${recipeName}\n\n*Recept nebyl nalezen.*\n\n`;
                     }
 
-                    let recipeText = `### ${mealType}: ${recipe.name}\n\n`;
+                    let recipeText =
+                        `### ${emoji} ${capitalizedMealType}: ${recipe.name}\n\n`;
 
                     if (recipe.ingredients && recipe.ingredients.length > 0) {
                         recipeText += `**Ingredience:**\n`;
@@ -314,21 +324,13 @@ export const createMealPlanTool = new DynamicStructuredTool({
                     return recipeText;
                 };
 
-                if (day.breakfast) {
-                    mealPlanText += formatRecipe(day.breakfast, "🥐 Snídaně");
-                }
-
-                mealPlanText += formatRecipe(day.lunch, "🍽️ Oběd");
-                mealPlanText += formatRecipe(day.dinner, "🌙 Večeře");
-
-                if (day.snacks && day.snacks.length > 0) {
-                    day.snacks.forEach((snackName: string) => {
-                        mealPlanText += formatRecipe(
-                            snackName,
-                            "🍪 Svačina/Desert",
-                        );
-                    });
-                }
+                // Process all meals for this day
+                day.meals.forEach((meal) => {
+                    mealPlanText += formatRecipe(
+                        meal.recipe_name,
+                        meal.meal_type,
+                    );
+                });
 
                 mealPlanText += `---\n\n`;
             });
@@ -344,7 +346,7 @@ export const createMealPlanTool = new DynamicStructuredTool({
             }
 
             // Save to file in plans directory
-            const filename = `jidelnicek_${Date.now()}.md`;
+            const filename = `jidelnicek_${timestamp}.md`;
             const filepath = join(plansDir, filename);
             writeFileSync(filepath, mealPlanText, "utf-8");
             console.log(
@@ -355,14 +357,27 @@ export const createMealPlanTool = new DynamicStructuredTool({
             const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n` +
                 days.map((day) => {
                     let dayText = `🗓️ ${day.day_name}:\n`;
-                    if (day.breakfast) {
-                        dayText += `  • Snídaně: ${day.breakfast}\n`;
-                    }
-                    dayText += `  • Oběd: ${day.lunch}\n`;
-                    dayText += `  • Večeře: ${day.dinner}\n`;
-                    if (day.snacks && day.snacks.length > 0) {
-                        dayText += `  • Svačiny: ${day.snacks.join(", ")}\n`;
-                    }
+
+                    // Group meals by type for cleaner display
+                    const mealsByType = day.meals.reduce((acc, meal) => {
+                        if (!acc[meal.meal_type]) acc[meal.meal_type] = [];
+                        acc[meal.meal_type].push(meal.recipe_name);
+                        return acc;
+                    }, {} as Record<string, string[]>);
+
+                    // Display meals in preferred order
+                    const mealOrder = ["snídaně", "oběd", "večeře", "svačina"];
+                    mealOrder.forEach((mealType) => {
+                        if (mealsByType[mealType]) {
+                            const capitalizedType =
+                                mealType.charAt(0).toUpperCase() +
+                                mealType.slice(1);
+                            dayText += `  • ${capitalizedType}: ${
+                                mealsByType[mealType].join(", ")
+                            }\n`;
+                        }
+                    });
+
                     return dayText;
                 }).join("\n") +
                 `\n💾 Kompletní jídelníček s ${allRecipeNames.size} recepty uložen jako: plans/${filename}\n`;

@@ -9,10 +9,10 @@
   "scripts": {
     "build": "swc . -d dist --ignore node_modules,docs,dist",
     "build:ts": "tsc --build --verbose",
-    "start": "npm run build && node dist/main.js",
+    "demo": "npm run build && node dist/main.js",
     "chat": "npm run build && node dist/src/interactive.js",
     "agent": "npm run build && node dist/src/agent.js",
-    "dev:start": "npx tsx main.ts",
+    "dev:demo": "npx tsx main.ts",
     "dev:chat": "npx tsx src/interactive.ts",
     "dev:agent": "npx tsx src/agent.ts",
     "clean": "rm -rf dist *.tsbuildinfo",

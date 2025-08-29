@@ -14,7 +14,7 @@ async function main() {
     const result = await app.invoke({
         messages: [
             new HumanMessage(
-                "Chci dneska uvařit nějaké dobré masité jídlo. Najdi něco s karlovarským knedlíkem a přidej všechny ingredience do nákupního seznamu",
+                "Chci abys mi vytvořil jídelníček na 3 dny dopředu. vytvoř mi i dokument s tímto plánem. Jsem vegetarian",
             ),
         ],
     });
