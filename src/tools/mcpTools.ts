@@ -225,29 +225,109 @@ export const createMealPlanTool = new DynamicStructuredTool({
             ),
         })).describe("Array objektů pro jednotlivé dny"),
     }),
-    func: async ({ title, days, notes }) => {
+    func: async ({ title, days }) => {
         try {
-            // Create formatted meal plan text
-            let mealPlanText = `# ${title}\n\n`;
+            // Collect all unique recipe names from the meal plan
+            const allRecipeNames = new Set<string>();
 
-            if (notes) {
-                mealPlanText += `*${notes}*\n\n`;
+            days.forEach((day) => {
+                if (day.breakfast) allRecipeNames.add(day.breakfast);
+                allRecipeNames.add(day.lunch);
+                allRecipeNames.add(day.dinner);
+                if (day.snacks) {
+                    day.snacks.forEach((snack) => allRecipeNames.add(snack));
+                }
+            });
+
+            console.log(
+                `LOG: fetching ${allRecipeNames.size} unique recipes from MCP server 🔍`,
+            );
+
+            // Fetch complete recipe details for each unique recipe
+            const recipeDetails = new Map();
+
+            for (const recipeName of allRecipeNames) {
+                try {
+                    const response = await fetch(
+                        `${MCP_BASE_URL}/search_recipes?name=${
+                            encodeURIComponent(recipeName)
+                        }`,
+                    );
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.recipes && data.recipes.length > 0) {
+                            // Take the first matching recipe
+                            recipeDetails.set(recipeName, data.recipes[0]);
+                        } else {
+                            console.log(
+                                `LOG: No recipe found for "${recipeName}" ⚠️`,
+                            );
+                            // Create a placeholder if recipe not found
+                            recipeDetails.set(recipeName, {
+                                name: recipeName,
+                                ingredients: [],
+                                steps: "Recept nebyl nalezen v databázi.",
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(
+                        `LOG: Error fetching recipe "${recipeName}":`,
+                        error,
+                    );
+                    recipeDetails.set(recipeName, {
+                        name: recipeName,
+                        ingredients: [],
+                        steps: "Chyba při načítání receptu.",
+                    });
+                }
             }
+
+            // Create formatted meal plan text with complete recipes
+            let mealPlanText = `# ${title}\n\n`;
 
             days.forEach((day, index) => {
                 mealPlanText += `## ${day.day_name}\n\n`;
 
+                // Helper function to format recipe with complete details
+                const formatRecipe = (recipeName: string, mealType: string) => {
+                    const recipe = recipeDetails.get(recipeName);
+                    if (!recipe) {
+                        return `### ${mealType}: ${recipeName}\n\n*Recept nebyl nalezen.*\n\n`;
+                    }
+
+                    let recipeText = `### ${mealType}: ${recipe.name}\n\n`;
+
+                    if (recipe.ingredients && recipe.ingredients.length > 0) {
+                        recipeText += `**Ingredience:**\n`;
+                        recipe.ingredients.forEach((ingredient: string) => {
+                            recipeText += `- ${ingredient}\n`;
+                        });
+                        recipeText += `\n`;
+                    }
+
+                    if (recipe.steps) {
+                        recipeText += `**Postup:**\n${recipe.steps}\n\n`;
+                    }
+
+                    return recipeText;
+                };
+
                 if (day.breakfast) {
-                    mealPlanText += `**🥐 Snídaně:** ${day.breakfast}\n\n`;
+                    mealPlanText += formatRecipe(day.breakfast, "🥐 Snídaně");
                 }
 
-                mealPlanText += `**🍽️ Oběd:** ${day.lunch}\n\n`;
-                mealPlanText += `**🌙 Večeře:** ${day.dinner}\n\n`;
+                mealPlanText += formatRecipe(day.lunch, "🍽️ Oběd");
+                mealPlanText += formatRecipe(day.dinner, "🌙 Večeře");
 
                 if (day.snacks && day.snacks.length > 0) {
-                    mealPlanText += `**🍪 Svačiny/Dezerty:** ${
-                        day.snacks.join(", ")
-                    }\n\n`;
+                    day.snacks.forEach((snackName: string) => {
+                        mealPlanText += formatRecipe(
+                            snackName,
+                            "🍪 Svačina/Desert",
+                        );
+                    });
                 }
 
                 mealPlanText += `---\n\n`;
@@ -264,14 +344,14 @@ export const createMealPlanTool = new DynamicStructuredTool({
             }
 
             // Save to file in plans directory
-            const filename = `jidelnicek_${timestamp}.md`;
+            const filename = `jidelnicek_${Date.now()}.md`;
             const filepath = join(plansDir, filename);
             writeFileSync(filepath, mealPlanText, "utf-8");
             console.log(
-                `Soubor s jídelníčkem byl uložen do souboru plans/${filename}`,
+                `LOG: meal plan saved with ${allRecipeNames.size} complete recipes 💾`,
             );
 
-            // Create console output
+            // Create console output (simplified - no recipe steps)
             const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n` +
                 days.map((day) => {
                     let dayText = `🗓️ ${day.day_name}:\n`;
@@ -284,12 +364,10 @@ export const createMealPlanTool = new DynamicStructuredTool({
                         dayText += `  • Svačiny: ${day.snacks.join(", ")}\n`;
                     }
                     return dayText;
-                }).join("");
-            // Return also the filepath
-            return {
-                output: consoleOutput,
-                filepath,
-            };
+                }).join("\n") +
+                `\n💾 Kompletní jídelníček s ${allRecipeNames.size} recepty uložen jako: plans/${filename}\n`;
+
+            return consoleOutput;
         } catch (error) {
             return `Error creating meal plan: ${
                 error instanceof Error ? error.message : "Unknown error"
