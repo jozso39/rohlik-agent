@@ -225,6 +225,13 @@ export const createMealPlanTool = new DynamicStructuredTool({
         })).describe("Array objektů pro jednotlivé dny"),
     }),
     func: async ({ title, days }) => {
+        // Meal type emoji mapping
+        const mealEmojis = {
+            "snídaně": "🥐",
+            "oběd": "🍽️",
+            "večeře": "🌙",
+            "svačina": "🍪",
+        };
         try {
             // Collect all unique recipe names from the meal plan
             const allRecipeNames = new Set<string>();
@@ -234,10 +241,6 @@ export const createMealPlanTool = new DynamicStructuredTool({
                     allRecipeNames.add(meal.recipe_name);
                 });
             });
-
-            console.log(
-                `LOG: fetching ${allRecipeNames.size} unique recipes from MCP server 🔍`,
-            );
 
             // Fetch complete recipe details for each unique recipe
             const recipeDetails = new Map();
@@ -280,59 +283,61 @@ export const createMealPlanTool = new DynamicStructuredTool({
                 }
             }
 
-            // Create formatted meal plan text with complete recipes
+            // Create formatted meal plan text
             let mealPlanText = `# ${title}\n\n`;
-
-            // Meal type emoji mapping
-            const mealEmojis = {
-                "snídaně": "🥐",
-                "oběd": "🍽️",
-                "večeře": "🌙",
-                "svačina": "🍪",
-            };
-
             days.forEach((day) => {
-                mealPlanText += `## ${day.day_name}\n\n`;
+                mealPlanText += `🗓️ **${day.day_name}:**\n`;
 
-                // Helper function to format recipe with complete details
-                const formatRecipe = (recipeName: string, mealType: string) => {
-                    const recipe = recipeDetails.get(recipeName);
-                    const emoji =
-                        mealEmojis[mealType as keyof typeof mealEmojis] || "🍽️";
-                    const capitalizedMealType =
-                        mealType.charAt(0).toUpperCase() + mealType.slice(1);
-
-                    if (!recipe) {
-                        return `### ${emoji} ${capitalizedMealType}: ${recipeName}\n\n*Recept nebyl nalezen.*\n\n`;
-                    }
-
-                    let recipeText =
-                        `### ${emoji} ${capitalizedMealType}: ${recipe.name}\n\n`;
-
-                    if (recipe.ingredients && recipe.ingredients.length > 0) {
-                        recipeText += `**Ingredience:**\n`;
-                        recipe.ingredients.forEach((ingredient: string) => {
-                            recipeText += `- ${ingredient}\n`;
-                        });
-                        recipeText += `\n`;
-                    }
-
-                    if (recipe.steps) {
-                        recipeText += `**Postup:**\n${recipe.steps}\n\n`;
-                    }
-
-                    return recipeText;
-                };
-
-                // Process all meals for this day
-                day.meals.forEach((meal) => {
-                    mealPlanText += formatRecipe(
-                        meal.recipe_name,
-                        meal.meal_type,
-                    );
+                // Sort meals by type for logical ordering
+                const mealOrder = ["snídaně", "oběd", "večeře", "svačina"];
+                const sortedMeals = day.meals.sort((a, b) => {
+                    const aIndex = mealOrder.indexOf(a.meal_type);
+                    const bIndex = mealOrder.indexOf(b.meal_type);
+                    return aIndex - bIndex;
                 });
 
-                mealPlanText += `---\n\n`;
+                sortedMeals.forEach((meal) => {
+                    // const emoji = emoji[meal.meal_type];
+                    const capitalizedMealType =
+                        meal.meal_type.charAt(0).toUpperCase() +
+                        meal.meal_type.slice(1);
+                    mealPlanText +=
+                        ` * ${capitalizedMealType}: ${meal.recipe_name}\n`;
+                });
+                mealPlanText += `\n`;
+            });
+
+            mealPlanText += `---\n\n`;
+            mealPlanText += `## Recepty\n\n`;
+
+            // Second section: Detailed recipes
+            // Collect all unique recipes that were actually found
+            const foundRecipes = new Map();
+            allRecipeNames.forEach((recipeName) => {
+                const recipe = recipeDetails.get(recipeName);
+                if (
+                    recipe && recipe.ingredients &&
+                    recipe.ingredients.length > 0
+                ) {
+                    foundRecipes.set(recipeName, recipe);
+                }
+            });
+
+            // Generate detailed recipe sections
+            foundRecipes.forEach((recipe, recipeName) => {
+                mealPlanText += `### ${recipe.name}\n\n`;
+
+                if (recipe.ingredients && recipe.ingredients.length > 0) {
+                    mealPlanText += `**Ingredience:**\n`;
+                    recipe.ingredients.forEach((ingredient: string) => {
+                        mealPlanText += `- ${ingredient}\n`;
+                    });
+                    mealPlanText += `\n`;
+                }
+
+                if (recipe.steps) {
+                    mealPlanText += `**Postup:**\n${recipe.steps}\n\n`;
+                }
             });
 
             // Add timestamp
@@ -350,7 +355,7 @@ export const createMealPlanTool = new DynamicStructuredTool({
             const filepath = join(plansDir, filename);
             writeFileSync(filepath, mealPlanText, "utf-8");
             console.log(
-                `LOG: meal plan saved with ${allRecipeNames.size} complete recipes 💾`,
+                `💾 Kompletní jídelníček s ${allRecipeNames.size} recepty byl uložen jako: plans/${filename}`,
             );
 
             // Create console output (simplified - no recipe steps)
@@ -379,8 +384,7 @@ export const createMealPlanTool = new DynamicStructuredTool({
                     });
 
                     return dayText;
-                }).join("\n") +
-                `\n💾 Kompletní jídelníček s ${allRecipeNames.size} recepty uložen jako: plans/${filename}\n`;
+                }).join("\n");
 
             return consoleOutput;
         } catch (error) {
