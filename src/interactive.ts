@@ -5,6 +5,7 @@ import "dotenv/config";
 
 import { HumanMessage } from "@langchain/core/messages";
 import { app } from "./agent";
+import { clearShoppingListTool } from "./tools/mcpTools";
 import * as readline from "readline";
 import { stdin as input, stdout as output } from "process";
 
@@ -54,8 +55,21 @@ async function processUserInput(userInput: string) {
         userInput.trim() === "RESET"
     ) {
         conversationHistory = [];
-        // TODO: clear the shoping list as well
-        console.log("🧹 Conversation history cleared!\n");
+
+        // Clear the shopping list as well when clearing conversation
+        try {
+            await clearShoppingListTool.func({});
+            console.log(
+                "🧹 Konverzace restartována a nákupní seznam vyčištěn!\n",
+            );
+        } catch (error) {
+            console.log("🧹 Conversation history cleared!");
+            console.log(
+                "⚠️ Warning: Could not clear shopping list:",
+                error instanceof Error ? error.message : "Unknown error",
+            );
+        }
+
         rl.prompt();
         return;
     }
