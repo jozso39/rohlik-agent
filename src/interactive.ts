@@ -13,7 +13,7 @@ import { stdin as input, stdout as output } from "process";
 const rl = readline.createInterface({
     input,
     output,
-    prompt: "🤖 You: ",
+    prompt: "👤: ",
 });
 
 const goodbyeMessage = "\n👋 Naschledanou! Díky že jste využili RAPJANS!";
@@ -35,7 +35,7 @@ console.log("   • 'najdi mi recepty na vegetariánské polévky'");
 console.log("   • 'co je na mém nákupním seznamu?'");
 console.log("   • 'odstraň vše z nákupního seznamu'");
 console.log("   • 'odstraň okurku z nákupního seznamu'");
-console.log("📝 Napiš 'DOST' nebo 'STAČILO' k ukončení programu,");
+console.log("📝 Napiš 'KONEC' nebo 'STAČILO' k ukončení programu,");
 console.log(
     "nebo 'POMOC' pro nápovědu, nebo 'RESET' pro restart konverzace.\n",
 );
@@ -43,7 +43,7 @@ console.log(
 // Function to process user input
 async function processUserInput(userInput: string) {
     if (
-        userInput.trim() === "DOST" ||
+        userInput.trim() === "KONEC" ||
         userInput.trim() === "STAČILO"
     ) {
         console.log(goodbyeMessage);
@@ -79,7 +79,7 @@ async function processUserInput(userInput: string) {
         console.log(
             "   • Bavte se přirozeně s agentem, ptejte se na recepty a přípravu jídelníčku nebo o upravení nákupního seznamu.",
         );
-        console.log("📝 Napiš 'DOST' nebo 'STAČILO' k ukončení programu,");
+        console.log("📝 Napiš 'KONEC' nebo 'STAČILO' k ukončení programu,");
         console.log(
             "nebo 'POMOC' pro nápovědu, nebo 'RESET' pro restart konverzace.\n",
         );
