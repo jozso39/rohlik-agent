@@ -7,14 +7,12 @@
   "type": "commonjs",
   "main": "dist/main.js",
   "scripts": {
-    "build": "swc . -d dist --ignore node_modules,docs,dist -q",
+    "build": "swc . -d dist --ignore node_modules,docs,dist --quiet",
     "build:ts": "tsc --build --verbose",
-    "demo": "npm run build && node dist/main.js",
-    "chat": "npm run build && node dist/src/interactive.js",
-    "agent": "npm run build && node dist/src/agent.js",
+    "demo": "swc . -d dist --ignore node_modules,docs,dist --quiet && node dist/main.js",
+    "chat": "swc . -d dist --ignore node_modules,docs,dist --quiet && node dist/src/interactive.js",
     "dev:demo": "npx tsx main.ts",
     "dev:chat": "npx tsx src/interactive.ts",
-    "dev:agent": "npx tsx src/agent.ts",
     "clean": "rm -rf dist *.tsbuildinfo",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

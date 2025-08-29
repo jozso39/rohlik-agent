@@ -16,7 +16,8 @@ const rl = readline.createInterface({
     prompt: "👤: ",
 });
 
-const goodbyeMessage = "\n👋 Naschledanou! Díky že jste využili RohBota!";
+const goodbyeMessage =
+    "\n👋 Naschledanou! Váš nákupní seznam byl vyčištěn. Díky že jste využili RohBota!";
 
 // Store conversation history
 let conversationHistory: any[] = [];
@@ -40,12 +41,24 @@ console.log(
     "nebo 'POMOC' pro nápovědu, nebo 'RESET' pro restart konverzace.\n",
 );
 
+async function cleanShopingList() {
+    try {
+        await clearShoppingListTool.func({});
+    } catch (error) {
+        console.log(
+            "⚠️ Warning: Could not clear shopping list:",
+            error instanceof Error ? error.message : "Unknown error",
+        );
+    }
+}
+
 // Function to process user input
 async function processUserInput(userInput: string) {
     if (
         userInput.toLowerCase().trim() === "konec" ||
         userInput.toLowerCase().trim() === "stačilo"
     ) {
+        await cleanShopingList();
         console.log(goodbyeMessage);
         rl.close();
         return;
@@ -55,20 +68,8 @@ async function processUserInput(userInput: string) {
         userInput.toLowerCase().trim() === "reset"
     ) {
         conversationHistory = [];
-
-        // Clear the shopping list as well when clearing conversation
-        try {
-            await clearShoppingListTool.func({});
-            console.log(
-                "🧹 Konverzace restartována a nákupní seznam vyčištěn!\n",
-            );
-        } catch (error) {
-            console.log("🧹 Conversation history cleared!");
-            console.log(
-                "⚠️ Warning: Could not clear shopping list:",
-                error instanceof Error ? error.message : "Unknown error",
-            );
-        }
+        await cleanShopingList();
+        console.log("🧹 Konverzace restartována a nákupní seznam vyčištěn.");
 
         rl.prompt();
         return;
@@ -129,7 +130,9 @@ rl.on("line", (input) => {
 // Handle Ctrl+C
 rl.on("SIGINT", () => {
     console.log(goodbyeMessage);
-    process.exit(0);
+    cleanShopingList().then(() => {
+        process.exit(0);
+    });
 });
 
 // Start the interactive session
