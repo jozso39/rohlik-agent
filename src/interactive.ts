@@ -1,21 +1,9 @@
-// interactive.mts - Interactive CLI interface for the LangGraph MCP agent
-
-// Load environment variables from .env file
-import "dotenv/config";
+// interactive.ts - Interactive CLI interface for the LangGraph MCP agent
 
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { app } from "./agent";
-import { clearShoppingListTool } from "./tools/mcpTools";
-import { checkMCPServer } from "./utils/mcpHealthCheck";
-import * as readline from "readline";
-import { stdin as input, stdout as output } from "process";
-
-// Create readline interface
-const rl = readline.createInterface({
-    input,
-    output,
-    prompt: "👤: ",
-});
+import { app } from "./agent.ts";
+import { clearShoppingListTool } from "./tools/mcpTools.ts";
+import { checkMCPServer } from "./utils/mcpHealthCheck.ts";
 
 const goodbyeMessage =
     "\n👋 Naschledanou! Váš nákupní seznam byl vyčištěn. Díky že jste využili RohBota!";
@@ -53,6 +41,21 @@ async function cleanShopingList() {
     }
 }
 
+// Function to read user input from stdin
+async function readInput(): Promise<string> {
+    const decoder = new TextDecoder();
+    const buffer = new Uint8Array(1024);
+
+    Deno.stdout.write(new TextEncoder().encode("👤: "));
+    const n = await Deno.stdin.read(buffer);
+
+    if (n === null) {
+        return "";
+    }
+
+    return decoder.decode(buffer.subarray(0, n)).trim();
+}
+
 // Function to process user input
 async function processUserInput(userInput: string) {
     if (
@@ -61,16 +64,13 @@ async function processUserInput(userInput: string) {
     ) {
         await cleanShopingList();
         console.log(goodbyeMessage);
-        rl.close();
-        return;
+        Deno.exit(0);
     }
 
     if (userInput.toLowerCase().trim() === "reset") {
         conversationHistory = [];
         await cleanShopingList();
         console.log("🧹 Konverzace restartována a nákupní seznam vyčištěn.");
-
-        rl.prompt();
         return;
     }
 
@@ -83,12 +83,10 @@ async function processUserInput(userInput: string) {
         console.log(
             "nebo 'POMOC' pro nápovědu, nebo 'RESET' pro restart konverzace.\n",
         );
-        rl.prompt();
         return;
     }
 
     if (!userInput.trim()) {
-        rl.prompt();
         return;
     }
 
@@ -117,26 +115,32 @@ async function processUserInput(userInput: string) {
         );
         console.log(); // Empty line for better readability
     }
-
-    rl.prompt();
 }
-
-// Handle user input
-rl.on("line", (input) => {
-    processUserInput(input);
-});
-
-// Handle Ctrl+C
-rl.on("SIGINT", () => {
-    console.log(goodbyeMessage);
-    cleanShopingList().then(() => {
-        process.exit(0);
-    });
-});
 
 async function startInteractiveSession() {
     await checkMCPServer();
-    rl.prompt();
+
+    // Handle Ctrl+C gracefully
+    Deno.addSignalListener("SIGINT", async () => {
+        console.log(goodbyeMessage);
+        await cleanShopingList();
+        Deno.exit(0);
+    });
+
+    // Main input loop
+    while (true) {
+        try {
+            const input = await readInput();
+            await processUserInput(input);
+        } catch (error) {
+            if (error instanceof Deno.errors.Interrupted) {
+                console.log(goodbyeMessage);
+                await cleanShopingList();
+                Deno.exit(0);
+            }
+            console.error("Error reading input:", error);
+        }
+    }
 }
 
 startInteractiveSession();

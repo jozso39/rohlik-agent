@@ -1,8 +1,6 @@
-import "dotenv/config";
-
 import { HumanMessage } from "@langchain/core/messages";
-import { app } from "./src/agent";
-import { checkMCPServer } from "./src/utils/mcpHealthCheck";
+import { app } from "./src/agent.ts";
+import { checkMCPServer } from "./src/utils/mcpHealthCheck.ts";
 
 console.log("🤖 RohBot Demo");
 console.log("=====================================\n");

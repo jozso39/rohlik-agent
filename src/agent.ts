@@ -1,12 +1,10 @@
-// agent.mts - Main LangGraph agent with MCP tools integration
-
-import "dotenv/config";
+// agent.ts - Main LangGraph agent with MCP tools integration
 
 import { ChatOpenAI } from "@langchain/openai";
 import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
-import { mcpTools } from "./tools/mcpTools";
+import { mcpTools } from "./tools/mcpTools.ts";
 
 // Define the tools for the agent to use - only MCP tools for recipe focus
 const tools = [...mcpTools];
@@ -17,23 +15,6 @@ const model = new ChatOpenAI({
     temperature: 0,
 }).bindTools(tools);
 
-/**
- * Determines the next action based on the last message in the conversation.
- *
- * If the last message contains tool calls, returns "tools" to indicate that tool processing should continue.
- * Otherwise, returns "__end__" to signal the end of the process.
- *
- * @param {MessagesAnnotation.State} param0 - An object containing the array of messages.
- * @returns {"tools" | "__end__"} - The next action to take.
- */
-function shouldContinue({ messages }: typeof MessagesAnnotation.State) {
-    const lastMessage = messages[messages.length - 1] as AIMessage;
-
-    if (lastMessage.tool_calls?.length) {
-        return "tools";
-    }
-    return "__end__";
-}
 /**
  * Determines the next action based on the last message in the conversation.
  *

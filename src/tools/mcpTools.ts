@@ -1,9 +1,7 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 
-const MCP_BASE_URL = process.env.MCP_BASE_URL || "http://localhost:8001";
+const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") || "http://localhost:8001";
 
 // Tool for searching recipes
 const searchRecipesTool = new DynamicStructuredTool({
@@ -58,8 +56,7 @@ const searchRecipesTool = new DynamicStructuredTool({
 // Tool for getting all recipes
 const getAllRecipesTool = new DynamicStructuredTool({
     name: "get_all_recipes",
-    description:
-        "Vrátí seznam všech dostupných receptů v databázi." +
+    description: "Vrátí seznam všech dostupných receptů v databázi." +
         "Seznam receptů je příliš dlouhý, proto tento nástroj používej pouze pokud nenajdeš žádné recepty přes endpoint /search_recipes",
     schema: z.object({}),
     func: async () => {
@@ -270,9 +267,11 @@ const createMealPlanTool = new DynamicStructuredTool({
             for (const recipeName of allRecipeNames) {
                 try {
                     const response = await fetch(
-                        `${MCP_BASE_URL}/search_recipes?name=${encodeURIComponent(
-                            recipeName,
-                        )}`,
+                        `${MCP_BASE_URL}/search_recipes?name=${
+                            encodeURIComponent(
+                                recipeName,
+                            )
+                        }`,
                     );
 
                     if (response.ok) {
@@ -323,7 +322,8 @@ const createMealPlanTool = new DynamicStructuredTool({
                     const capitalizedMealType =
                         meal.meal_type.charAt(0).toUpperCase() +
                         meal.meal_type.slice(1);
-                    mealPlanText += `  • ${emoji} ${capitalizedMealType}: ${meal.recipe_name}\n`;
+                    mealPlanText +=
+                        `  • ${emoji} ${capitalizedMealType}: ${meal.recipe_name}\n`;
                 });
                 mealPlanText += `\n`;
             });
@@ -367,50 +367,63 @@ const createMealPlanTool = new DynamicStructuredTool({
             mealPlanText += `*Jídelníček vytvořen: ${timestamp}*\n`;
 
             // Create plans directory if it doesn't exist
-            const plansDir = join(process.cwd(), "plans");
-            if (!existsSync(plansDir)) {
-                mkdirSync(plansDir, { recursive: true });
+            const plansDir = new URL("./plans/", import.meta.resolve("./"));
+            try {
+                await Deno.stat(plansDir);
+            } catch {
+                await Deno.mkdir(plansDir, { recursive: true });
             }
 
             // Save to file in plans directory
             const filename = `jidelnicek_${timestamp}.md`;
-            const filepath = join(plansDir, filename);
-            writeFileSync(filepath, mealPlanText, "utf-8");
+            const filepath = new URL(filename, plansDir);
+            await Deno.writeTextFile(filepath, mealPlanText);
             console.log(
                 `💾 Kompletní jídelníček s ${allRecipeNames.size} recepty byl uložen jako: plans/${filename}`,
             );
 
             // Create console output (simplified - no recipe steps)
-            const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n${days
-                .map((day) => {
-                    let dayText = `🗓️ ${day.day_name}:\n`;
+            const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n${
+                days
+                    .map((day) => {
+                        let dayText = `🗓️ ${day.day_name}:\n`;
 
-                    // Group meals by type for cleaner display
-                    const mealsByType = day.meals.reduce(
-                        (acc, meal) => {
-                            if (!acc[meal.meal_type]) acc[meal.meal_type] = [];
-                            acc[meal.meal_type].push(meal.recipe_name);
-                            return acc;
-                        },
-                        {} as Record<string, string[]>,
-                    );
+                        // Group meals by type for cleaner display
+                        const mealsByType = day.meals.reduce(
+                            (acc, meal) => {
+                                if (!acc[meal.meal_type]) {
+                                    acc[meal.meal_type] = [];
+                                }
+                                acc[meal.meal_type].push(meal.recipe_name);
+                                return acc;
+                            },
+                            {} as Record<string, string[]>,
+                        );
 
-                    // Display meals in preferred order
-                    const mealOrder = ["snídaně", "oběd", "večeře", "svačina"];
-                    mealOrder.forEach((mealType) => {
-                        if (mealsByType[mealType]) {
-                            const capitalizedType =
-                                mealType.charAt(0).toUpperCase() +
-                                mealType.slice(1);
-                            dayText += `  • ${capitalizedType}: ${mealsByType[
-                                mealType
-                            ].join(", ")}\n`;
-                        }
-                    });
+                        // Display meals in preferred order
+                        const mealOrder = [
+                            "snídaně",
+                            "oběd",
+                            "večeře",
+                            "svačina",
+                        ];
+                        mealOrder.forEach((mealType) => {
+                            if (mealsByType[mealType]) {
+                                const capitalizedType =
+                                    mealType.charAt(0).toUpperCase() +
+                                    mealType.slice(1);
+                                dayText += `  • ${capitalizedType}: ${
+                                    mealsByType[
+                                        mealType
+                                    ].join(", ")
+                                }\n`;
+                            }
+                        });
 
-                    return dayText;
-                })
-                .join("\n")}`;
+                        return dayText;
+                    })
+                    .join("\n")
+            }`;
 
             return consoleOutput;
         } catch (error) {

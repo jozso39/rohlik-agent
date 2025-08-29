@@ -6,7 +6,8 @@
  * Exits the process with error message if server is not available
  */
 export async function checkMCPServer(): Promise<void> {
-    const MCP_BASE_URL = process.env.MCP_BASE_URL || "http://localhost:8001";
+    const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") ||
+        "http://localhost:8001";
     try {
         const response = await fetch(`${MCP_BASE_URL}/get_shopping_list`);
         if (!response.ok) {
@@ -22,6 +23,6 @@ export async function checkMCPServer(): Promise<void> {
                 error instanceof Error ? error.message : "Unknown error"
             }`,
         );
-        process.exit(1);
+        Deno.exit(1);
     }
 }

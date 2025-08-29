@@ -1,0 +1,51 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "deno.window"
+        ],
+        "strict": true
+    },
+    "tasks": {
+        "dev": "deno run --allow-net --allow-read --allow-write --allow-env --env-file main.ts",
+        "chat": "deno run --allow-net --allow-read --allow-write --allow-env --env-file src/interactive.ts",
+        "check": "deno check **/*.ts",
+        "fmt": "deno fmt",
+        "fmt:check": "deno fmt --check",
+        "lint": "deno lint",
+        "test": "deno test --allow-net --allow-read --allow-write --allow-env --env-file"
+    },
+    "fmt": {
+        "useTabs": false,
+        "lineWidth": 80,
+        "indentWidth": 4,
+        "semiColons": true,
+        "singleQuote": false,
+        "proseWrap": "preserve",
+        "include": [
+            "src/",
+            "main.ts"
+        ],
+        "exclude": [
+            "node_modules/",
+            "dist/"
+        ]
+    },
+    "lint": {
+        "include": [
+            "src/",
+            "main.ts"
+        ],
+        "exclude": [
+            "node_modules/",
+            "dist/"
+        ]
+    },
+    "imports": {
+        "@langchain/core/messages": "npm:@langchain/core@^0.3.72/messages",
+        "@langchain/core/tools": "npm:@langchain/core@^0.3.72/tools",
+        "@langchain/openai": "npm:@langchain/openai@^0.6.9",
+        "@langchain/langgraph": "npm:@langchain/langgraph@^0.4.6",
+        "@langchain/langgraph/prebuilt": "npm:@langchain/langgraph@^0.4.6/prebuilt",
+        "zod": "npm:zod@^3.25.76"
+    }
+}
