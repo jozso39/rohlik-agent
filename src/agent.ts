@@ -55,30 +55,28 @@ const app = workflow.compile();
 // Export the compiled app for use in other files
 export { app };
 
-// If this file is run directly, execute the main example
-if (require.main === module) {
-    async function runAgent() {
-        // Use the agent
-        const finalState = await app.invoke({
-            messages: [
-                new HumanMessage(
-                    "I want to cook something vegetarian tonight. Can you help me find a vegetarian recipe and add the ingredients to my shopping list?",
-                ),
-            ],
-        });
-        console.log(
-            finalState.messages[finalState.messages.length - 1].content,
-        );
+// async function runAgent() {
+//     const finalState = await app.invoke({
+//         messages: [
+//             new HumanMessage(
+//                 "I want to cook something vegetarian tonight. Can you help me find a vegetarian recipe and add the ingredients to my shopping list?",
+//             ),
+//         ],
+//     });
+//     console.log(
+//         finalState.messages[finalState.messages.length - 1].content,
+//     );
 
-        const nextState = await app.invoke({
-            // Including the messages from the previous run gives the LLM context.
-            messages: [
-                ...finalState.messages,
-                new HumanMessage("Can you show me my current shopping list?"),
-            ],
-        });
-        console.log(nextState.messages[nextState.messages.length - 1].content);
-    }
+//     const nextState = await app.invoke({
+//         // Including the messages from the previous run gives the LLM context.
+//         messages: [
+//             ...finalState.messages,
+//             new HumanMessage("Can you show me my current shopping list?"),
+//         ],
+//     });
+//     console.log(nextState.messages[nextState.messages.length - 1].content);
+// }
 
-    runAgent().catch(console.error);
-}
+// if (require.main === module) {
+//     runAgent().catch(console.error);
+// }

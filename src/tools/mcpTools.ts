@@ -10,16 +10,16 @@ const MCP_BASE_URL = process.env.MCP_BASE_URL || "http://localhost:8001";
 export const searchRecipesTool = new DynamicStructuredTool({
     name: "search_recipes",
     description:
-        "Search for recipes by diet type, meal type, or name. Useful for finding recipes that match specific criteria.",
+        "Hledej recepty podle diety (diet), typu jídle nebo chodu (meal_type) nebo jména (name). Parametry vyhledávání se dají kombinovat. Užitečné když chcete najít recepty podle konkrétních kritérií.",
     schema: z.object({
         diet: z.string().optional().describe(
-            "Filter recipes by diet category (e.g., vegetarian, vegan, high-protein, masité)",
+            "Vrátí filtrované recepty podle diety nebo kategorie stravování. Možnosti: 'bez laktozy', 'bezlepkové', 'high-protein', 'low-carb', 'masité', 'tučné', 'vegan', 'vegetarian'",
         ),
         meal_type: z.string().optional().describe(
-            "Filter recipes by meal type (e.g., polévka, hlavní chod, desert)",
+            "Vrátí filtrované recepty podle typu jídla (meal type), Možnosti: desert', 'dochucovadlo', 'hlavní chod', 'polévka', 'pomazánka', 'předkrm', 'příloha', 'salát', 'snídaně'",
         ),
         name: z.string().optional().describe(
-            "Search recipes by name (partial match)",
+            "Vyhledá recepty podle názvu (částečná shoda)",
         ),
     }),
     func: async ({ diet, meal_type, name }) => {
@@ -57,7 +57,7 @@ export const searchRecipesTool = new DynamicStructuredTool({
 export const getAllRecipesTool = new DynamicStructuredTool({
     name: "get_all_recipes",
     description:
-        "Get a list of all available recipes in the database. The list of recipes is way too long, so use this tool only when necessary",
+        "Vrátí seznam všech dostupných receptů v databázi. Seznam receptů je příliš dlouhý, proto tento nástroj používej pouze v nezbytných případech",
     schema: z.object({}),
     func: async () => {
         try {
@@ -82,10 +82,10 @@ export const getAllRecipesTool = new DynamicStructuredTool({
 export const addIngredientsToShoppingListTool = new DynamicStructuredTool({
     name: "add_ingredients_to_shopping_list",
     description:
-        "Add multiple ingredients to the shopping list. Useful when planning meals or when users want to add specific items.",
+        "Přidá více ingrediencí na nákupní seznam (shoping list). Užitečné při plánování jídel nebo když si uživatelé přejí přidat konkrétní položky.",
     schema: z.object({
         ingredients: z.array(z.string()).describe(
-            "Array of ingredient names to add to the shopping list",
+            "Array s názvy ingrediencí k přidání na nákupní seznam",
         ),
     }),
     func: async ({ ingredients }) => {
@@ -119,8 +119,7 @@ export const addIngredientsToShoppingListTool = new DynamicStructuredTool({
 // Tool for getting the current shopping list
 export const getShoppingListTool = new DynamicStructuredTool({
     name: "get_shopping_list",
-    description:
-        "Get the current shopping list with all items that need to be purchased.",
+    description: "Vrátí obsah aktuálního nákupního seznamu se všemi položkami.",
     schema: z.object({}),
     func: async () => {
         try {
@@ -146,7 +145,7 @@ export const getShoppingListTool = new DynamicStructuredTool({
 export const clearShoppingListTool = new DynamicStructuredTool({
     name: "clear_shopping_list",
     description:
-        "Clear all items from the shopping list. Use this when the user wants to start fresh or has completed their shopping.",
+        "Odstraní všechny položky z nákupního seznamu. Použij, když chce uživatel začít znovu nebo již dokončil nákup.",
     schema: z.object({}),
     func: async () => {
         try {
@@ -174,6 +173,8 @@ export const clearShoppingListTool = new DynamicStructuredTool({
         }
     },
 });
+
+// TODO: add remove ingredient tool
 
 // Export all MCP tools as an array
 export const mcpTools = [

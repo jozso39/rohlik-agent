@@ -15,48 +15,60 @@ const rl = readline.createInterface({
     prompt: "🤖 You: ",
 });
 
+const goodbyeMessage = "\n👋 Naschledanou! Díky že jste využili RAPJANS!";
+
 // Store conversation history
 let conversationHistory: any[] = [];
 
-console.log("🤖 LangGraph MCP Shopping Assistant - Interactive Mode");
+console.log(
+    "🤖 Rohlík Asistent pro plánování jídelníčku a správu nákupního seznamu (RAPJANS)",
+);
 console.log("====================================================");
-console.log("💬 Chat with the agent! Examples:");
-console.log("   • 'add mrkev to the shopping cart'");
-console.log("   • 'get me a few gluten-free polívka recipes'");
-console.log("   • 'what's on my shopping list?'");
-console.log("   • 'clear my shopping list'");
-console.log("   • 'find vegetarian dessert recipes'");
-console.log("📝 Type 'exit' or 'quit' to stop\n");
+console.log(
+    "💬 Pomůžu ti naplánovat tvůj jídelníček podle exkluzivních rohlíkovských receptů!",
+);
+console.log("Můžeš mi poroučet například takto:");
+console.log("   • 'připrav mi týdenní plán vegetariánských jídel'");
+console.log("   • 'přidej mrkev na nákupní seznam'");
+console.log("   • 'najdi mi recepty na vegetariánské polévky'");
+console.log("   • 'co je na mém nákupním seznamu?'");
+console.log("   • 'odstraň vše z nákupního seznamu'");
+console.log("   • 'odstraň okurku z nákupního seznamu'");
+console.log("📝 Napiš 'DOST' nebo 'STAČILO' k ukončení programu,");
+console.log(
+    "nebo 'POMOC' pro nápovědu, nebo 'RESET' pro restart konverzace.\n",
+);
 
 // Function to process user input
 async function processUserInput(userInput: string) {
     if (
-        userInput.toLowerCase().trim() === "exit" ||
-        userInput.toLowerCase().trim() === "quit"
+        userInput.trim() === "DOST" ||
+        userInput.trim() === "STAČILO"
     ) {
-        console.log("👋 Goodbye! Thanks for using the MCP Shopping Assistant!");
+        console.log(goodbyeMessage);
         rl.close();
         return;
     }
 
     if (
-        userInput.toLowerCase().trim() === "clear" ||
-        userInput.toLowerCase().trim() === "reset"
+        userInput.trim() === "RESET"
     ) {
         conversationHistory = [];
+        // TODO: clear the shoping list as well
         console.log("🧹 Conversation history cleared!\n");
         rl.prompt();
         return;
     }
 
-    if (userInput.toLowerCase().trim() === "help") {
-        console.log("\n🆘 Available commands:");
+    if (userInput.trim() === "POMOC") {
+        console.log("\n🆘 Možnosti:");
         console.log(
-            "   • Chat naturally with the agent about recipes and shopping",
+            "   • Bavte se přirozeně s agentem, ptejte se na recepty a přípravu jídelníčku nebo o upravení nákupního seznamu.",
         );
-        console.log("   • 'clear' or 'reset' - Clear conversation history");
-        console.log("   • 'exit' or 'quit' - Exit the application");
-        console.log("   • 'help' - Show this help message\n");
+        console.log("📝 Napiš 'DOST' nebo 'STAČILO' k ukončení programu,");
+        console.log(
+            "nebo 'POMOC' pro nápovědu, nebo 'RESET' pro restart konverzace.\n",
+        );
         rl.prompt();
         return;
     }
@@ -67,7 +79,7 @@ async function processUserInput(userInput: string) {
     }
 
     try {
-        console.log("🤔 Thinking...\n");
+        console.log("🤔 Přemýšlím...\n");
 
         // Add user message to history
         const userMessage = new HumanMessage(userInput);
@@ -102,7 +114,7 @@ rl.on("line", (input) => {
 
 // Handle Ctrl+C
 rl.on("SIGINT", () => {
-    console.log("\n👋 Goodbye! Thanks for using the MCP Shopping Assistant!");
+    console.log(goodbyeMessage);
     process.exit(0);
 });
 
