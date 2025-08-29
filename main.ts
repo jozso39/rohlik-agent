@@ -10,11 +10,17 @@ console.log("🤖 RohBot Demo");
 console.log("=====================================\n");
 
 async function main() {
-    // Simple demonstration
+    const humanMessageText =
+        "Chci abys mi vytvořil jídelníček na 3 dny dopředu. vytvoř mi i dokument s tímto plánem. Jsem vegetarian";
+    console.log(
+        "Tohle je malé demo RohBota (Rohlík asistent pro plánování jídelníčku a správu nákupního seznamu)\n",
+    );
+    console.log("User: " + humanMessageText);
+
     const result = await app.invoke({
         messages: [
             new HumanMessage(
-                "Chci abys mi vytvořil jídelníček na 3 dny dopředu. vytvoř mi i dokument s tímto plánem. Jsem vegetarian",
+                humanMessageText,
             ),
         ],
     });
