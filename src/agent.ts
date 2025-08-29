@@ -5,7 +5,7 @@ import "dotenv/config";
 
 import { TavilySearch } from "@langchain/tavily";
 import { ChatOpenAI } from "@langchain/openai";
-import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { writeFileSync } from "node:fs";
@@ -33,11 +33,18 @@ function shouldContinue({ messages }: typeof MessagesAnnotation.State) {
     return "__end__";
 }
 
+const systemMessage =
+    "Jsi užitečný asistent, který komunikuje s uživateli VÝHRADNĚ V ČEŠTINĚ!" +
+    "Radíš uživatelům s recepty a jsi schopný těchto úkonů:" +
+    "- přidávat a odebírat ingredience z nákupního seznamu" +
+    "- vyhledávat recepty podle diety nebo typu jídla" +
+    "- plánovat jídelníček na více dní podle dietních požadavků uživatele";
+
 // Define the function that calls the model
 async function callModel(state: typeof MessagesAnnotation.State) {
-    const response = await model.invoke(state.messages);
-
-    // We return a list, because this will get added to the existing list
+    const systemMessage = new SystemMessage(systemMessage);
+    const messagesWithSystem = [systemMessage, ...state.messages];
+    const response = await model.invoke(messagesWithSystem);
     return { messages: [response] };
 }
 
