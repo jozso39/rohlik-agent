@@ -39,9 +39,12 @@ module.exports = [
         },
         rules: {
             // TypeScript specific rules (without type-checking for speed)
-            "@typescript-eslint/no-unused-vars": ["error", {
-                argsIgnorePattern: "^_",
-            }],
+            "@typescript-eslint/no-unused-vars": [
+                "error",
+                {
+                    argsIgnorePattern: "^_",
+                },
+            ],
             "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/explicit-module-boundary-types": "off",
             "@typescript-eslint/no-explicit-any": "warn",
@@ -59,7 +62,7 @@ module.exports = [
             // Error prevention
             "no-unreachable": "error",
             "no-unused-expressions": "error",
-            "eqeqeq": ["error", "always"],
+            eqeqeq: ["error", "always"],
 
             // Code style
             "prefer-arrow-callback": "error",

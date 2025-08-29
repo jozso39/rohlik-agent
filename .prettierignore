@@ -24,3 +24,10 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Git
+.git/

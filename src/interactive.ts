@@ -64,9 +64,7 @@ async function processUserInput(userInput: string) {
         return;
     }
 
-    if (
-        userInput.toLowerCase().trim() === "reset"
-    ) {
+    if (userInput.toLowerCase().trim() === "reset") {
         conversationHistory = [];
         await cleanShopingList();
         console.log("🧹 Konverzace restartována a nákupní seznam vyčištěn.");

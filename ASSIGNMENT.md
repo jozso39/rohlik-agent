@@ -1,6 +1,7 @@
-*1. Background & Vision
+\*1. Background & Vision
 
 At Rohlik Group, our goal is to make AI the default way we serve and grow our customer base. We are moving beyond simple models to build intelligent, autonomous systems that redefine our business.
+
 # 1. Background & Vision
 
 At Rohlik Group, our goal is to make AI the default way we serve and grow our customer base. We are moving beyond simple models to build intelligent, autonomous systems that redefine our business.
@@ -29,8 +30,8 @@ This is not just about writing a script. We want to see how you build a robust, 
 
 - **Working AI Agent:** You must use a modern agentic framework (e.g., LangGraph or build your own) to implement the core logic. The agent's ability to reason, plan, and delegate tasks to tools is critical.
 - **MCP Server for Tooling:** You must create and run a simple MCP server that exposes at least two custom tools to your agent. This demonstrates your ability to build structured, interoperable AI systems. Example:
-	- **Tool 1:** `recipe_finder` — A tool that can search the provided recipe dataset based on criteria (e.g., keywords, dietary tags).
-	- **Tool 2:** `shopping_list_manager` — A tool that can create a shopping list, add ingredients to it, and retrieve the final list.
+    - **Tool 1:** `recipe_finder` — A tool that can search the provided recipe dataset based on criteria (e.g., keywords, dietary tags).
+    - **Tool 2:** `shopping_list_manager` — A tool that can create a shopping list, add ingredients to it, and retrieve the final list.
 - **Conversational Memory:** The agent must be able to recall previous turns in the conversation to handle follow-up requests contextually.
 
 **Dataset:**
@@ -42,8 +43,8 @@ Please use this pre-existing dataset of recipes:
 
 - **Source Code:** All Python code for the agent, the MCP server, and any data processing scripts, submitted as a Git repository link or a zip file.
 - **System Design:** A brief document covering:
-	- A high-level architecture diagram of your solution.
-	- A short explanation of your key technical choices (Why this agent framework? Why this model?).
+    - A high-level architecture diagram of your solution.
+    - A short explanation of your key technical choices (Why this agent framework? Why this model?).
 
 # 5. Evaluation Criteria
 

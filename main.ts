@@ -15,14 +15,10 @@ async function main() {
     console.log(
         "Tohle je malé demo RohBota (Rohlík asistent pro plánování jídelníčku a správu nákupního seznamu)\n",
     );
-    console.log("User: " + humanMessageText);
+    console.log(`User: ${humanMessageText}`);
 
     const result = await app.invoke({
-        messages: [
-            new HumanMessage(
-                humanMessageText,
-            ),
-        ],
+        messages: [new HumanMessage(humanMessageText)],
     });
 
     console.log("🍽️ Agent Response:");

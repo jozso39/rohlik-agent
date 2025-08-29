@@ -16,15 +16,22 @@ export const searchRecipesTool = new DynamicStructuredTool({
         "Užitečné když chcete najít recepty podle konkrétních kritérií." +
         "Pokud nenajdeš žádné recepty, můžeš použít endpoint /get_all_recipes",
     schema: z.object({
-        diet: z.string().optional().describe(
-            "Vrátí filtrované recepty podle diety nebo kategorie stravování. Možnosti: 'bez laktozy', 'bezlepkové', 'high-protein', 'low-carb', 'masité', 'tučné', 'vegan', 'vegetarian'",
-        ),
-        meal_type: z.string().optional().describe(
-            "Vrátí filtrované recepty podle typu jídla (meal type), Možnosti: desert', 'dochucovadlo', 'hlavní chod', 'polévka', 'pomazánka', 'předkrm', 'příloha', 'salát', 'snídaně'",
-        ),
-        name: z.string().optional().describe(
-            "Vyhledá recepty podle názvu (částečná shoda)",
-        ),
+        diet: z
+            .string()
+            .optional()
+            .describe(
+                "Vrátí filtrované recepty podle diety nebo kategorie stravování. Možnosti: 'bez laktozy', 'bezlepkové', 'high-protein', 'low-carb', 'masité', 'tučné', 'vegan', 'vegetarian'",
+            ),
+        meal_type: z
+            .string()
+            .optional()
+            .describe(
+                "Vrátí filtrované recepty podle typu jídla (meal type), Možnosti: desert', 'dochucovadlo', 'hlavní chod', 'polévka', 'pomazánka', 'předkrm', 'příloha', 'salát', 'snídaně'",
+            ),
+        name: z
+            .string()
+            .optional()
+            .describe("Vyhledá recepty podle názvu (částečná shoda)"),
     }),
     func: async ({ diet, meal_type, name }) => {
         try {
@@ -54,7 +61,8 @@ export const searchRecipesTool = new DynamicStructuredTool({
 // Tool for getting all recipes
 export const getAllRecipesTool = new DynamicStructuredTool({
     name: "get_all_recipes",
-    description: "Vrátí seznam všech dostupných receptů v databázi." +
+    description:
+        "Vrátí seznam všech dostupných receptů v databázi." +
         "Seznam receptů je příliš dlouhý, proto tento nástroj používej pouze pokud nenajdeš žádné recepty přes endpoint /search_recipes",
     schema: z.object({}),
     func: async () => {
@@ -81,9 +89,9 @@ export const addIngredientsToShoppingListTool = new DynamicStructuredTool({
     description:
         "Přidá více ingrediencí na nákupní seznam (shoping list). Užitečné při plánování jídel nebo když si uživatelé přejí přidat konkrétní položky.",
     schema: z.object({
-        ingredients: z.array(z.string()).describe(
-            "Array s názvy ingrediencí k přidání na nákupní seznam",
-        ),
+        ingredients: z
+            .array(z.string())
+            .describe("Array s názvy ingrediencí k přidání na nákupní seznam"),
     }),
     func: async ({ ingredients }) => {
         try {
@@ -171,9 +179,11 @@ export const removeIngredientsFromShoppingListTool = new DynamicStructuredTool({
     description:
         "Odstraní specifické ingredience z nákupního seznamu. Ingredience, které nejsou v seznamu, budou ignorovány. Užitečné pro úpravu nákupního seznamu nebo když se uživatel rozhodne některé položky nechtít.",
     schema: z.object({
-        ingredients: z.array(z.string()).describe(
-            "Array s názvy ingrediencí k odstranění z nákupního seznamu",
-        ),
+        ingredients: z
+            .array(z.string())
+            .describe(
+                "Array s názvy ingrediencí k odstranění z nákupního seznamu",
+            ),
     }),
     func: async ({ ingredients }) => {
         try {
@@ -205,29 +215,47 @@ export const createMealPlanTool = new DynamicStructuredTool({
     description:
         "Vytvoří strukturovaný jídelníček na více dní a uloží ho jako markdown soubor. Použij tento nástroj po vytvoření jídelníčku na několik dní dopředu.",
     schema: z.object({
-        title: z.string().describe(
-            "Název jídelníčku (např. 'Vegetariánský jídelníček na týden')",
-        ),
-        days: z.array(z.object({
-            day_name: z.string().describe(
-                "Název dne (např. 'Den 1 - Pondělí')",
+        title: z
+            .string()
+            .describe(
+                "Název jídelníčku (např. 'Vegetariánský jídelníček na týden')",
             ),
-            meals: z.array(z.object({
-                meal_type: z.enum(["snídaně", "oběd", "večeře", "svačina"])
-                    .describe(
-                        "Typ jídla - snídaně, oběd, večeře nebo svačina",
-                    ),
-                recipe_name: z.string().describe("Název receptu"),
-            })).describe("Seznam jídel pro daný den"),
-        })).describe("Array objektů pro jednotlivé dny"),
+        days: z
+            .array(
+                z.object({
+                    day_name: z
+                        .string()
+                        .describe("Název dne (např. 'Den 1 - Pondělí')"),
+                    meals: z
+                        .array(
+                            z.object({
+                                meal_type: z
+                                    .enum([
+                                        "snídaně",
+                                        "oběd",
+                                        "večeře",
+                                        "svačina",
+                                    ])
+                                    .describe(
+                                        "Typ jídla - snídaně, oběd, večeře nebo svačina",
+                                    ),
+                                recipe_name: z
+                                    .string()
+                                    .describe("Název receptu"),
+                            }),
+                        )
+                        .describe("Seznam jídel pro daný den"),
+                }),
+            )
+            .describe("Array objektů pro jednotlivé dny"),
     }),
     func: async ({ title, days }) => {
         // Meal type emoji mapping
         const mealEmojis = {
-            "snídaně": "🥐",
-            "oběd": "🍽️",
-            "večeře": "🌙",
-            "svačina": "🍪",
+            snídaně: "🥐",
+            oběd: "🍽️",
+            večeře: "🌙",
+            svačina: "🍪",
         };
         try {
             // Collect all unique recipe names from the meal plan
@@ -245,9 +273,9 @@ export const createMealPlanTool = new DynamicStructuredTool({
             for (const recipeName of allRecipeNames) {
                 try {
                     const response = await fetch(
-                        `${MCP_BASE_URL}/search_recipes?name=${
-                            encodeURIComponent(recipeName)
-                        }`,
+                        `${MCP_BASE_URL}/search_recipes?name=${encodeURIComponent(
+                            recipeName,
+                        )}`,
                     );
 
                     if (response.ok) {
@@ -298,8 +326,7 @@ export const createMealPlanTool = new DynamicStructuredTool({
                     const capitalizedMealType =
                         meal.meal_type.charAt(0).toUpperCase() +
                         meal.meal_type.slice(1);
-                    mealPlanText +=
-                        `  • ${emoji} ${capitalizedMealType}: ${meal.recipe_name}\n`;
+                    mealPlanText += `  • ${emoji} ${capitalizedMealType}: ${meal.recipe_name}\n`;
                 });
                 mealPlanText += `\n`;
             });
@@ -313,7 +340,8 @@ export const createMealPlanTool = new DynamicStructuredTool({
             allRecipeNames.forEach((recipeName) => {
                 const recipe = recipeDetails.get(recipeName);
                 if (
-                    recipe && recipe.ingredients &&
+                    recipe &&
+                    recipe.ingredients &&
                     recipe.ingredients.length > 0
                 ) {
                     foundRecipes.set(recipeName, recipe);
@@ -356,16 +384,19 @@ export const createMealPlanTool = new DynamicStructuredTool({
             );
 
             // Create console output (simplified - no recipe steps)
-            const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n${
-                days.map((day) => {
+            const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n${days
+                .map((day) => {
                     let dayText = `🗓️ ${day.day_name}:\n`;
 
                     // Group meals by type for cleaner display
-                    const mealsByType = day.meals.reduce((acc, meal) => {
-                        if (!acc[meal.meal_type]) acc[meal.meal_type] = [];
-                        acc[meal.meal_type].push(meal.recipe_name);
-                        return acc;
-                    }, {} as Record<string, string[]>);
+                    const mealsByType = day.meals.reduce(
+                        (acc, meal) => {
+                            if (!acc[meal.meal_type]) acc[meal.meal_type] = [];
+                            acc[meal.meal_type].push(meal.recipe_name);
+                            return acc;
+                        },
+                        {} as Record<string, string[]>,
+                    );
 
                     // Display meals in preferred order
                     const mealOrder = ["snídaně", "oběd", "večeře", "svačina"];
@@ -374,15 +405,15 @@ export const createMealPlanTool = new DynamicStructuredTool({
                             const capitalizedType =
                                 mealType.charAt(0).toUpperCase() +
                                 mealType.slice(1);
-                            dayText += `  • ${capitalizedType}: ${
-                                mealsByType[mealType].join(", ")
-                            }\n`;
+                            dayText += `  • ${capitalizedType}: ${mealsByType[
+                                mealType
+                            ].join(", ")}\n`;
                         }
                     });
 
                     return dayText;
-                }).join("\n")
-            }`;
+                })
+                .join("\n")}`;
 
             return consoleOutput;
         } catch (error) {
