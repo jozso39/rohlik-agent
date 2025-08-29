@@ -43,7 +43,6 @@ The agent can:
 
 - `npm start` - Run the simple demo
 - `npm run chat` - **Interactive chat mode** 💬
-- `npm run examples` - Run comprehensive examples
 - `npm run agent` - Run the agent directly
 
 ## Interactive Mode

@@ -11,11 +11,9 @@
     "build:ts": "tsc --build --verbose",
     "start": "npm run build && node dist/main.js",
     "chat": "npm run build && node dist/src/interactive.js",
-    "examples": "npm run build && node dist/src/examples.js",
     "agent": "npm run build && node dist/src/agent.js",
     "dev:start": "npx tsx main.ts",
     "dev:chat": "npx tsx src/interactive.ts",
-    "dev:examples": "npx tsx src/examples.ts",
     "dev:agent": "npx tsx src/agent.ts",
     "clean": "rm -rf dist *.tsbuildinfo",
     "test": "echo \"Error: no test specified\" && exit 1"

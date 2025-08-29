@@ -1,6 +1,5 @@
 // agent.mts - Main LangGraph agent with MCP tools integration
 
-// Load environment variables from .env file
 import "dotenv/config";
 
 import { TavilySearch } from "@langchain/tavily";

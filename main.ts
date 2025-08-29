@@ -23,7 +23,6 @@ async function main() {
     console.log(result.messages[result.messages.length - 1].content);
 
     console.log("\n🎯 Want to chat interactively? Run: npm run chat");
-    console.log("📝 For more examples, run: npm run examples");
 }
 
 // Run the main function
