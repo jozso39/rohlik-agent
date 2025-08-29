@@ -1,6 +1,3 @@
-// main.mts - Main entry point for the LangGraph MCP Demo
-
-// Load environment variables from .env file
 import "dotenv/config";
 
 import { HumanMessage } from "@langchain/core/messages";
@@ -12,7 +9,7 @@ console.log("=====================================\n");
 
 async function main() {
     await checkMCPServer();
-    
+
     const humanMessageText =
         "Chci abys mi vytvořil jídelníček na 3 dny dopředu. vytvoř mi i dokument s tímto plánem. Jsem vegetarian";
     console.log(
@@ -32,5 +29,4 @@ async function main() {
     );
 }
 
-// Run the main function
 main().catch(console.error);

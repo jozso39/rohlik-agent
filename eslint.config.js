@@ -4,7 +4,6 @@ const tsparser = require("@typescript-eslint/parser");
 const prettier = require("eslint-config-prettier");
 
 module.exports = [
-    // Base JavaScript recommended rules
     js.configs.recommended,
 
     // Apply only to TypeScript files

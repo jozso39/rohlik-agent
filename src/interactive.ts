@@ -134,7 +134,6 @@ rl.on("SIGINT", () => {
     });
 });
 
-// Start the interactive session after checking MCP server
 async function startInteractiveSession() {
     await checkMCPServer();
     rl.prompt();

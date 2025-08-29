@@ -1,15 +1,12 @@
-// mcpTools.mts - Custom tools for the Shopping List MCP Server
-
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Base URL for the MCP server
 const MCP_BASE_URL = process.env.MCP_BASE_URL || "http://localhost:8001";
 
 // Tool for searching recipes
-export const searchRecipesTool = new DynamicStructuredTool({
+const searchRecipesTool = new DynamicStructuredTool({
     name: "search_recipes",
     description:
         "Hledej recepty podle diety (diet), typu jídle nebo chodu (meal_type) nebo jména (name). Parametry vyhledávání se dají kombinovat." +
@@ -59,7 +56,7 @@ export const searchRecipesTool = new DynamicStructuredTool({
 });
 
 // Tool for getting all recipes
-export const getAllRecipesTool = new DynamicStructuredTool({
+const getAllRecipesTool = new DynamicStructuredTool({
     name: "get_all_recipes",
     description:
         "Vrátí seznam všech dostupných receptů v databázi." +
@@ -84,7 +81,7 @@ export const getAllRecipesTool = new DynamicStructuredTool({
 });
 
 // Tool for adding ingredients to shopping list
-export const addIngredientsToShoppingListTool = new DynamicStructuredTool({
+const addIngredientsToShoppingListTool = new DynamicStructuredTool({
     name: "add_ingredients_to_shopping_list",
     description:
         "Přidá více ingrediencí na nákupní seznam (shoping list). Užitečné při plánování jídel nebo když si uživatelé přejí přidat konkrétní položky.",
@@ -118,7 +115,7 @@ export const addIngredientsToShoppingListTool = new DynamicStructuredTool({
 });
 
 // Tool for getting the current shopping list
-export const getShoppingListTool = new DynamicStructuredTool({
+const getShoppingListTool = new DynamicStructuredTool({
     name: "get_shopping_list",
     description: "Vrátí obsah aktuálního nákupního seznamu se všemi položkami.",
     schema: z.object({}),
@@ -174,7 +171,7 @@ export const clearShoppingListTool = new DynamicStructuredTool({
 });
 
 // Tool for removing ingredients from shopping list
-export const removeIngredientsFromShoppingListTool = new DynamicStructuredTool({
+const removeIngredientsFromShoppingListTool = new DynamicStructuredTool({
     name: "remove_ingredients_from_shopping_list",
     description:
         "Odstraní specifické ingredience z nákupního seznamu. Ingredience, které nejsou v seznamu, budou ignorovány. Užitečné pro úpravu nákupního seznamu nebo když se uživatel rozhodne některé položky nechtít.",
@@ -210,7 +207,7 @@ export const removeIngredientsFromShoppingListTool = new DynamicStructuredTool({
 });
 
 // Tool for creating structured meal plans
-export const createMealPlanTool = new DynamicStructuredTool({
+const createMealPlanTool = new DynamicStructuredTool({
     name: "create_meal_plan",
     description:
         "Vytvoří strukturovaný jídelníček na více dní a uloží ho jako markdown soubor. Použij tento nástroj po vytvoření jídelníčku na několik dní dopředu.",

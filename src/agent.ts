@@ -17,7 +17,32 @@ const model = new ChatOpenAI({
     temperature: 0,
 }).bindTools(tools);
 
-// function that determines whether to continue or not
+/**
+ * Determines the next action based on the last message in the conversation.
+ *
+ * If the last message contains tool calls, returns "tools" to indicate that tool processing should continue.
+ * Otherwise, returns "__end__" to signal the end of the process.
+ *
+ * @param {MessagesAnnotation.State} param0 - An object containing the array of messages.
+ * @returns {"tools" | "__end__"} - The next action to take.
+ */
+function shouldContinue({ messages }: typeof MessagesAnnotation.State) {
+    const lastMessage = messages[messages.length - 1] as AIMessage;
+
+    if (lastMessage.tool_calls?.length) {
+        return "tools";
+    }
+    return "__end__";
+}
+/**
+ * Determines the next action based on the last message in the conversation.
+ *
+ * If the last message contains tool calls, returns "tools" to indicate that tool processing should continue.
+ * Otherwise, returns "__end__" to signal the end of the process.
+ *
+ * @param {MessagesAnnotation.State} param0 - An object containing the array of messages.
+ * @returns {"tools" | "__end__"} - The next action to take.
+ */
 function shouldContinue({ messages }: typeof MessagesAnnotation.State) {
     const lastMessage = messages[messages.length - 1] as AIMessage;
 
@@ -47,6 +72,12 @@ const systemMessageText =
     "\n\nVždy přidej všechny ingredience z vybraných receptů na nákupní seznam. " +
     "Vše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)";
 
+/**
+ * Invokes the model with the current state messages, prepending a system message.
+ *
+ * @param state - The current state containing messages to be processed.
+ * @returns A promise that resolves to an object containing the model's response message.
+ */
 async function callModel(state: typeof MessagesAnnotation.State) {
     const systemMessage = new SystemMessage(systemMessageText);
     const messagesWithSystem = [systemMessage, ...state.messages];

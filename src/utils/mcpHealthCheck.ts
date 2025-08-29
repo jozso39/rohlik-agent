@@ -10,12 +10,18 @@ export async function checkMCPServer(): Promise<void> {
     try {
         const response = await fetch(`${MCP_BASE_URL}/get_shopping_list`);
         if (!response.ok) {
-            throw new Error(`MCP server responded with status: ${response.status}`);
+            throw new Error(
+                `MCP server responded with status: ${response.status}`,
+            );
         }
     } catch (error) {
         console.error("❌ MCP server není dostupný!");
         console.error(`   Ujistěte se, že MCP server běží na ${MCP_BASE_URL}`);
-        console.error(`   Chyba: ${error instanceof Error ? error.message : "Unknown error"}`);
+        console.error(
+            `   Chyba: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`,
+        );
         process.exit(1);
     }
 }
