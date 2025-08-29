@@ -1,6 +1,12 @@
-# LangGraph.js MCP Server Integration Sample
+# Rohlík Asistent pro plánování jídelníčku a správu nákupního seznamu (RAPJANS)
 
-This project demonstrates how to integrate a Model Context Protocol (MCP) server with LangGraph.js to create an intelligent agent that can manage recipes and shopping lists.
+This project implements a LangGraph.js Agent that uses a custom built [MCP server](https://github.com/jozso39/rohlik-mcp-server). The agent can:
+- manipulate a shoping list via MCP server tool
+- search recipes from the MCP server by diet or meal type
+- create a meal plan based on user's dietary restrictions
+Both of the projects are created as an interview assignmnent to [Rohlík](https://www.rohlik.cz/) company. There is no intention to deploy this code or use it in production.
+
+IMPORTANT: the conversation must be in Czech, since all the recipes are exclusively in Czech language
 
 ## Features
 
@@ -12,27 +18,6 @@ The agent can:
 - Clear the shopping list
 - Use web search (via Tavily) for general questions
 
-## Project Structure
-
-```
-langgraph-js-sample/
-├── src/
-│   ├── agent.mts              # Main LangGraph agent implementation
-│   ├── interactive.mts        # Interactive CLI interface
-│   ├── examples.mts           # Comprehensive examples
-│   └── tools/
-│       └── mcpTools.mts       # MCP server integration tools
-├── docs/
-│   ├── MCP_README.md          # Detailed MCP setup guide
-│   ├── EXTENDING_MCP_TOOLS.md # Guide for adding new tools
-│   ├── swagger.yaml           # MCP server API specification
-│   └── llms.txt              # LangGraph.js documentation
-├── main.mts                   # Simple entry point
-├── .env                       # Environment variables (not in git)
-├── .env.example              # Environment template
-└── package.json              # Project dependencies and scripts
-```
-
 ## Quick Start
 
 1. **Install dependencies:**
@@ -40,18 +25,18 @@ langgraph-js-sample/
    npm install
    ```
 
-2. **Set up environment variables:**
+2. **Set up .env:**
    ```bash
    cp .env.example .env
    # Edit .env with your actual API keys
    ```
 
 3. **Start the MCP server:**
-   Make sure your Shopping List MCP server is running on `http://localhost:8001`
+   Make sure your [Shopping List MCP server](https://github.com/jozso39/rohlik-mcp-server) is running on `http://localhost:8001`
 
-4. **Run the demo:**
+4. **Run the interactive agent:**
    ```bash
-   npm start
+   npm run chat
    ```
 
 ## Available Scripts
@@ -70,37 +55,19 @@ npm run chat
 
 Then you can chat naturally:
 ```
-🤖 You: add mrkev to the shopping cart
-🤖 You: get me a few gluten-free polívka recipes  
-🤖 You: what's on my shopping list?
-🤖 You: clear my shopping list
+You: Vytvoř mi low-carb jídelníček na týden a přidej ingredience na nákupní seznam
+You: přidej mrkev na nákupní seznam
+You: najdi mi bezlepkové hlavní chody
+You: co mám na nákupním seznamu?
+You: smaž vše z nákupního seznamu
 ```
 
 Special commands:
-- `help` - Show available commands
-- `clear` or `reset` - Clear conversation history
-- `exit` or `quit` - Exit the application
-
-## Environment Variables
-
-Create a `.env` file with:
-```
-OPENAI_API_KEY=your_openai_api_key_here
-TAVILY_API_KEY=your_tavily_api_key_here
-MCP_BASE_URL=http://localhost:8001
-```
+- `POMOC` - Show available commands
+- `RESET` - Clear conversation history
+- `DOST` or `STAČILO` - Exit the application
 
 ## Documentation
 
-- [MCP Setup Guide](docs/MCP_README.md) - Detailed setup instructions
-- [Extending MCP Tools](docs/EXTENDING_MCP_TOOLS.md) - How to add new tools
-- [API Specification](docs/swagger.yaml) - MCP server endpoints
-
-## Example Interactions
-
-The agent can handle natural language requests like:
-- "Find me vegetarian soup recipes"
-- "Add ingredients from that recipe to my shopping list"
-- "What's on my shopping list?"
-- "Clear my shopping list"
-- "Find me some dessert recipes"
+- [MCP Setup Guide](docs/MCP_README.md) - MCP server details
+- [MCP Server API Specification](docs/swagger.yaml) - MCP server endpoints
