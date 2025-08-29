@@ -3,7 +3,7 @@
 // Load environment variables from .env file
 import "dotenv/config";
 
-import { HumanMessage } from "@langchain/core/messages";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { app } from "./agent";
 import { clearShoppingListTool } from "./tools/mcpTools";
 import * as readline from "readline";
@@ -20,7 +20,7 @@ const goodbyeMessage =
     "\n👋 Naschledanou! Váš nákupní seznam byl vyčištěn. Díky že jste využili RohBota!";
 
 // Store conversation history
-let conversationHistory: any[] = [];
+let conversationHistory: BaseMessage[] = [];
 
 console.log(
     "🤖 Rohlík Asistent pro plánování jídelníčku a správu nákupního seznamu (RohBot)",

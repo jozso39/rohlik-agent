@@ -4,14 +4,9 @@ import "dotenv/config";
 
 import { TavilySearch } from "@langchain/tavily";
 import { ChatOpenAI } from "@langchain/openai";
-import {
-    AIMessage,
-    HumanMessage,
-    SystemMessage,
-} from "@langchain/core/messages";
+import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
-import { writeFileSync } from "node:fs";
 import { mcpTools } from "./tools/mcpTools";
 
 // Define the tools for the agent to use

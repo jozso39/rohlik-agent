@@ -32,9 +32,6 @@ export const searchRecipesTool = new DynamicStructuredTool({
             if (diet) params.append("diet", diet);
             if (meal_type) params.append("meal_type", meal_type);
             if (name) params.append("name", name);
-            const paramsString = JSON.stringify(
-                Object.fromEntries(params.entries()),
-            );
 
             const response = await fetch(
                 `${MCP_BASE_URL}/search_recipes?${params.toString()}`,
@@ -324,7 +321,7 @@ export const createMealPlanTool = new DynamicStructuredTool({
             });
 
             // Generate detailed recipe sections
-            foundRecipes.forEach((recipe, recipeName) => {
+            foundRecipes.forEach((recipe) => {
                 mealPlanText += `### ${recipe.name}\n\n`;
 
                 if (recipe.ingredients && recipe.ingredients.length > 0) {
@@ -359,7 +356,7 @@ export const createMealPlanTool = new DynamicStructuredTool({
             );
 
             // Create console output (simplified - no recipe steps)
-            const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n` +
+            const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n${
                 days.map((day) => {
                     let dayText = `🗓️ ${day.day_name}:\n`;
 
@@ -384,7 +381,8 @@ export const createMealPlanTool = new DynamicStructuredTool({
                     });
 
                     return dayText;
-                }).join("\n");
+                }).join("\n")
+            }`;
 
             return consoleOutput;
         } catch (error) {

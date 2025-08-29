@@ -13,6 +13,9 @@
     "chat": "swc . -d dist --ignore node_modules,docs,dist --quiet && node dist/src/interactive.js",
     "dev:demo": "npx tsx main.ts",
     "dev:chat": "npx tsx src/interactive.ts",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "lint:check": "eslint . --ext .ts --max-warnings 0",
     "clean": "rm -rf dist *.tsbuildinfo",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -26,9 +29,14 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^9.34.0",
     "@swc/cli": "^0.7.8",
     "@swc/core": "^1.13.5",
     "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
     "typescript": "^5.9.2"
   }
 }
