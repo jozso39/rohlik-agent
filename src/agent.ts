@@ -48,7 +48,8 @@ const systemMessageText =
     "\n🗓️ Den 2 (úterý):" +
     "\n  • Snídaně: [název receptu]" +
     "\n  • atd..." +
-    "\n\nVždy přidej všechny ingredience z vybraných receptů na nákupní seznam.";
+    "\n\nVždy přidej všechny ingredience z vybraných receptů na nákupní seznam. " +
+    "Vše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)";
 
 async function callModel(state: typeof MessagesAnnotation.State) {
     const systemMessage = new SystemMessage(systemMessageText);

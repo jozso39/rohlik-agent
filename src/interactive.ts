@@ -16,13 +16,13 @@ const rl = readline.createInterface({
     prompt: "👤: ",
 });
 
-const goodbyeMessage = "\n👋 Naschledanou! Díky že jste využili RAPJANS!";
+const goodbyeMessage = "\n👋 Naschledanou! Díky že jste využili RohBota!";
 
 // Store conversation history
 let conversationHistory: any[] = [];
 
 console.log(
-    "🤖 Rohlík Asistent pro plánování jídelníčku a správu nákupního seznamu (RAPJANS)",
+    "🤖 Rohlík Asistent pro plánování jídelníčku a správu nákupního seznamu (RohBot)",
 );
 console.log("====================================================");
 console.log(

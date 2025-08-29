@@ -10,7 +10,9 @@ const MCP_BASE_URL = process.env.MCP_BASE_URL || "http://localhost:8001";
 export const searchRecipesTool = new DynamicStructuredTool({
     name: "search_recipes",
     description:
-        "Hledej recepty podle diety (diet), typu jídle nebo chodu (meal_type) nebo jména (name). Parametry vyhledávání se dají kombinovat. Užitečné když chcete najít recepty podle konkrétních kritérií.",
+        "Hledej recepty podle diety (diet), typu jídle nebo chodu (meal_type) nebo jména (name). Parametry vyhledávání se dají kombinovat." +
+        "Užitečné když chcete najít recepty podle konkrétních kritérií." +
+        "Pokud nenajdeš žádné recepty, můžeš použít endpoint /get_all_recipes",
     schema: z.object({
         diet: z.string().optional().describe(
             "Vrátí filtrované recepty podle diety nebo kategorie stravování. Možnosti: 'bez laktozy', 'bezlepkové', 'high-protein', 'low-carb', 'masité', 'tučné', 'vegan', 'vegetarian'",
@@ -56,8 +58,8 @@ export const searchRecipesTool = new DynamicStructuredTool({
 // Tool for getting all recipes
 export const getAllRecipesTool = new DynamicStructuredTool({
     name: "get_all_recipes",
-    description:
-        "Vrátí seznam všech dostupných receptů v databázi. Seznam receptů je příliš dlouhý, proto tento nástroj používej pouze v nezbytných případech",
+    description: "Vrátí seznam všech dostupných receptů v databázi." +
+        "Seznam receptů je příliš dlouhý, proto tento nástroj používej pouze pokud nenajdeš žádné recepty přes endpoint /search_recipes",
     schema: z.object({}),
     func: async () => {
         try {

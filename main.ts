@@ -6,7 +6,7 @@ import "dotenv/config";
 import { HumanMessage } from "@langchain/core/messages";
 import { app } from "./src/agent";
 
-console.log("🤖 LangGraph MCP Shopping Assistant");
+console.log("🤖 RohBot Demo");
 console.log("=====================================\n");
 
 async function main() {
@@ -14,7 +14,7 @@ async function main() {
     const result = await app.invoke({
         messages: [
             new HumanMessage(
-                "I want to cook something vegetarian tonight. Can you help me find a vegetarian recipe and add the ingredients to my shopping list?",
+                "Chci dneska uvařit nějaké dobré masité jídlo. Najdi něco s karlovarským knedlíkem a přidej všechny ingredience do nákupního seznamu",
             ),
         ],
     });
@@ -22,7 +22,9 @@ async function main() {
     console.log("🍽️ Agent Response:");
     console.log(result.messages[result.messages.length - 1].content);
 
-    console.log("\n🎯 Want to chat interactively? Run: npm run chat");
+    console.log(
+        "\n🎯 Chceš použít tohoto agenta interaktivně? Použij: 'npm run chat'",
+    );
 }
 
 // Run the main function

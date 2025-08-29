@@ -1,4 +1,4 @@
-# Rohlík Asistent pro plánování jídelníčku a správu nákupního seznamu (RAPJANS)
+# Rohlík asistent pro plánování jídelníčku a správu nákupního seznamu (RohBot)
 
 This project implements a LangGraph.js Agent that uses a custom built [MCP server](https://github.com/jozso39/rohlik-mcp-server). The agent can:
 - manipulate a shoping list via MCP server tool
