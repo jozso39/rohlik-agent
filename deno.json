@@ -17,10 +17,10 @@
         "test:health": "deno test --allow-net --allow-read --allow-write --allow-env tests/mcpHealthCheck.test.ts",
         "test:meal": "deno test --allow-net --allow-read --allow-write --allow-env tests/mealPlan.test.ts",
         "test:watch": "deno test --allow-net --allow-read --allow-write --allow-env --watch tests/",
-        "build:windows": "deno compile --allow-all --output ./bin/langgraph-mcp-agent-windows.exe src/interactive.ts",
-        "build:macos": "deno compile --allow-all --output ./bin/langgraph-mcp-agent-macos src/interactive.ts",
-        "build:demo:windows": "deno compile --allow-all --output ./bin/langgraph-mcp-agent-demo-windows.exe main.ts",
-        "build:demo:macos": "deno compile --allow-all --output ./bin/langgraph-mcp-agent-demo-macos main.ts",
+        "build:windows": "deno compile --allow-all --output ./bin/rohbot-windows.exe src/interactive.ts",
+        "build:macos": "deno compile --allow-all --output ./bin/rohbot-macos src/interactive.ts",
+        "build:demo:windows": "deno compile --allow-all --output ./bin/rohbot-demo-windows.exe main.ts",
+        "build:demo:macos": "deno compile --allow-all --output ./bin/rohbot-demo-macos main.ts",
         "build:all": "deno task build:windows && deno task build:macos && deno task build:demo:windows && deno task build:demo:macos"
     },
     "fmt": {
