@@ -12,7 +12,11 @@
         "fmt": "deno fmt",
         "fmt:check": "deno fmt --check",
         "lint": "deno lint",
-        "test": "deno test --allow-net --allow-read --allow-write --allow-env --env-file"
+        "test": "deno test --allow-net --allow-read --allow-write --allow-env tests/",
+        "test:mcp": "deno test --allow-net --allow-read --allow-write --allow-env tests/mcpTools.test.ts",
+        "test:health": "deno test --allow-net --allow-read --allow-write --allow-env tests/mcpHealthCheck.test.ts",
+        "test:meal": "deno test --allow-net --allow-read --allow-write --allow-env tests/mealPlan.test.ts",
+        "test:watch": "deno test --allow-net --allow-read --allow-write --allow-env --watch tests/"
     },
     "fmt": {
         "useTabs": false,
@@ -23,6 +27,7 @@
         "proseWrap": "preserve",
         "include": [
             "src/",
+            "tests/",
             "main.ts"
         ],
         "exclude": [
@@ -33,6 +38,7 @@
     "lint": {
         "include": [
             "src/",
+            "tests/",
             "main.ts"
         ],
         "exclude": [
