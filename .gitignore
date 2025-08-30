@@ -9,6 +9,10 @@ bin/
 build/
 *.tsbuildinfo
 
+# Executables
+rohbot-macos
+rohbot-windows.exe
+
 # IDE files
 .vscode/
 .idea/
