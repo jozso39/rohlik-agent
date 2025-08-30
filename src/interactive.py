@@ -5,11 +5,11 @@ import os
 import sys
 import asyncio
 from typing import List
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from src.agent import app
 from src.tools.mcp_tools import clear_shopping_list
 from src.utils.mcp_health_check import check_mcp_server_sync
-from src.utils.load_env import load_env
 
 GOODBYE_MESSAGE = "\n👋 Naschledanou! Váš nákupní seznam byl vyčištěn. Díky že jste využili RohBota!"
 
@@ -119,8 +119,8 @@ async def process_user_input(user_input: str) -> bool:
 
 async def start_interactive_session():
     """Start the interactive session"""
-    # Load environment variables
-    load_env()
+    # Load environment variables from .env file
+    load_dotenv()
     
     # Get MCP server URL
     mcp_base_url = os.getenv("MCP_BASE_URL", "http://localhost:8001")

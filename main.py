@@ -3,15 +3,15 @@ Main demo script for RohBot - Python version
 """
 import asyncio
 import os
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from src.agent import app
 from src.utils.mcp_health_check import check_mcp_server_sync
-from src.utils.load_env import load_env
 
 async def main():
     """Main demo function"""
-    # Load environment variables
-    load_env()
+    # Load environment variables from .env file
+    load_dotenv()
     
     print("🤖 RohBot Demo")
     print("=====================================\n")

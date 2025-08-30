@@ -3,11 +3,15 @@ Main LangGraph agent with MCP tools integration - Python version
 """
 import os
 from typing import Literal
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, SystemMessage
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import MessagesState, StateGraph, START, END
 from src.tools.mcp_tools import mcp_tools
+
+# Load environment variables from .env file (standard Python way)
+load_dotenv()
 
 # Define the tools for the agent to use - only MCP tools for recipe focus
 tools = mcp_tools
