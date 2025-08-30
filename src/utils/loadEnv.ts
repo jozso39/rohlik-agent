@@ -26,8 +26,6 @@ export async function loadEnv() {
                 }
             }
         }
-
-        console.log("✅ Loaded environment variables from .env file");
     } catch (error) {
         if (error instanceof Deno.errors.NotFound) {
             console.log(
