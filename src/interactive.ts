@@ -4,6 +4,7 @@ import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { app } from "./agent.ts";
 import { clearShoppingListTool } from "./tools/mcpTools.ts";
 import { checkMCPServer } from "./utils/mcpHealthCheck.ts";
+import { loadEnv } from "./utils/loadEnv.ts";
 
 const goodbyeMessage =
     "\n👋 Naschledanou! Váš nákupní seznam byl vyčištěn. Díky že jste využili RohBota!";
@@ -118,10 +119,13 @@ async function processUserInput(userInput: string) {
     }
 }
 
-const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") ||
-    "http://localhost:8001";
-
 async function startInteractiveSession() {
+    // Load environment variables from .env file if it exists
+    await loadEnv();
+
+    const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") ||
+        "http://localhost:8001";
+
     await checkMCPServer(MCP_BASE_URL);
 
     // Handle Ctrl+C gracefully

@@ -1,14 +1,17 @@
 import { HumanMessage } from "@langchain/core/messages";
 import { app } from "./src/agent.ts";
 import { checkMCPServer } from "./src/utils/mcpHealthCheck.ts";
+import { loadEnv } from "./src/utils/loadEnv.ts";
 
 console.log("🤖 RohBot Demo");
 console.log("=====================================\n");
 
-const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") ||
-    "http://localhost:8001";
-
 async function main() {
+    // Load environment variables from .env file if it exists
+    await loadEnv();
+
+    const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") ||
+        "http://localhost:8001";
     await checkMCPServer(MCP_BASE_URL);
 
     const humanMessageText =
