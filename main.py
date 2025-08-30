@@ -25,10 +25,7 @@ async def main():
         return
     
     # Demo message
-    human_message_text = (
-        "Chci abys mi vytvořil jídelníček na 3 dny dopředu. "
-        "vytvoř mi i dokument s tímto plánem. Jsem vegetarian"
-    )
+    human_message_text = "Chci abys mi vytvořil jídelníček na 3 dny dopředu. Jsem vegetarian"
     
     print("Tohle je malé demo RohBota (Rohlík asistent pro plánování jídelníčku a správu nákupního seznamu)\n")
     print(f"User: {human_message_text}")

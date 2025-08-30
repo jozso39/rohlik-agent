@@ -28,18 +28,6 @@ class IngredientsInput(BaseModel):
         description="Array of ingredient names to add/remove from shopping list"
     )
 
-class MealPlanDay(BaseModel):
-    """Schema for a single day in meal plan"""
-    day_name: str = Field(description="Name of the day (e.g., 'Den 1 - Pondělí')")
-    meals: List[Dict[str, str]] = Field(
-        description="List of meals for the day with meal_type and recipe_name"
-    )
-
-class CreateMealPlanInput(BaseModel):
-    """Input schema for meal plan creation"""
-    title: str = Field(description="Title of the meal plan (e.g., 'Vegetariánský jídelníček na týden')")
-    days: List[MealPlanDay] = Field(description="Array of days with their meals")
-
 @tool
 def search_recipes(diet: Optional[str] = None, meal_type: Optional[str] = None, name: Optional[str] = None) -> str:
     """
@@ -169,7 +157,7 @@ def remove_ingredients_from_shopping_list(ingredients: List[str]) -> str:
 @tool
 def create_meal_plan(title: str, days: List[Dict[str, Any]]) -> str:
     """
-    Create a structured meal plan for multiple days and save it as a markdown file.
+    Create a structured meal plan for multiple days.
     Use this tool after creating a meal plan for several days ahead.
     """
     meal_emojis = {
@@ -180,106 +168,7 @@ def create_meal_plan(title: str, days: List[Dict[str, Any]]) -> str:
     }
     
     try:
-        # Collect all unique recipe names
-        all_recipe_names = set()
-        for day in days:
-            for meal in day.get("meals", []):
-                all_recipe_names.add(meal.get("recipe_name", ""))
-        
-        # Fetch recipe details
-        recipe_details = {}
-        
-        for recipe_name in all_recipe_names:
-            if not recipe_name:
-                continue
-                
-            try:
-                with httpx.Client() as client:
-                    response = client.get(
-                        f"{MCP_BASE_URL}/search_recipes",
-                        params={"name": recipe_name}
-                    )
-                    
-                if response.status_code == 200:
-                    data = response.json()
-                    if data.get("recipes") and len(data["recipes"]) > 0:
-                        recipe_details[recipe_name] = data["recipes"][0]
-                    else:
-                        print(f"LOG: No recipe found for \"{recipe_name}\" ⚠️")
-                        recipe_details[recipe_name] = {
-                            "name": recipe_name,
-                            "ingredients": [],
-                            "steps": "Recept nebyl nalezen v databázi."
-                        }
-            except Exception as error:
-                print(f"LOG: Error fetching recipe \"{recipe_name}\": {error}")
-                recipe_details[recipe_name] = {
-                    "name": recipe_name,
-                    "ingredients": [],
-                    "steps": "Chyba při načítání receptu."
-                }
-        
         # Create meal plan text
-        meal_plan_text = f"# {title}\n\n"
-        
-        for day in days:
-            meal_plan_text += f"🗓️ **{day['day_name']}:**\n"
-            
-            # Sort meals by type
-            meal_order = ["snídaně", "oběd", "večeře", "svačina"]
-            sorted_meals = sorted(
-                day.get("meals", []),
-                key=lambda x: meal_order.index(x.get("meal_type", "")) if x.get("meal_type") in meal_order else 999
-            )
-            
-            for meal in sorted_meals:
-                meal_type = meal.get("meal_type", "")
-                recipe_name = meal.get("recipe_name", "")
-                emoji = meal_emojis.get(meal_type, "🍽️")
-                capitalized_meal_type = meal_type.capitalize() if meal_type else ""
-                meal_plan_text += f"  • {emoji} {capitalized_meal_type}: {recipe_name}\n"
-                
-            meal_plan_text += "\n"
-        
-        meal_plan_text += "---\n\n## Recepty\n\n"
-        
-        # Add detailed recipes
-        found_recipes = {
-            name: recipe for name, recipe in recipe_details.items()
-            if recipe.get("ingredients") and len(recipe["ingredients"]) > 0
-        }
-        
-        for recipe in found_recipes.values():
-            meal_plan_text += f"### {recipe['name']}\n\n"
-            
-            if recipe.get("ingredients"):
-                meal_plan_text += "**Ingredience:**\n"
-                for ingredient in recipe["ingredients"]:
-                    meal_plan_text += f"- {ingredient}\n"
-                meal_plan_text += "\n"
-            
-            if recipe.get("steps"):
-                meal_plan_text += f"**Postup:**\n{recipe['steps']}\n\n"
-        
-        # Add timestamp
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        meal_plan_text += f"*Jídelníček vytvořen: {datetime.now().strftime('%d.%m.%Y %H:%M')}*\n"
-        
-        # Create plans directory and save file
-        import os
-        plans_dir = "./plans"
-        os.makedirs(plans_dir, exist_ok=True)
-        
-        filename = f"jidelnicek_{timestamp}.md"
-        filepath = os.path.join(plans_dir, filename)
-        
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(meal_plan_text)
-            
-        print(f"💾 Kompletní jídelníček s {len(all_recipe_names)} recepty byl uložen jako: plans/{filename}")
-        
-        # Create console output
         console_output = f"📅 JÍDELNÍČEK: {title}\n\n"
         
         for day in days:

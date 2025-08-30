@@ -45,20 +45,19 @@ SYSTEM_MESSAGE_TEXT = (
     "- přidávat a odebírat ingredience z nákupního seznamu "
     "- vyhledávat recepty podle diety nebo typu jídla pomocí MCP serveru "
     "- plánovat jídelníček na více dní podle dietních požadavků uživatele "
-    "- vytvářet dokument s jídelníčkem "
+    "- vytvářet strukturovaný přehled jídelníčku "
     "\n\nPro vyhledávání receptů používej nástroje search_recipes a get_all_recipes. "
     "Pokud nenajdeš recepty pro specifickou dietu, navrhni alternativy z dostupných receptů. "
     "\n\nKdyž vytváříš jídelníček, VŽDY ho prezentuj v tomto formátu: "
     "\n📅 JÍDELNÍČEK: "
-    "\n🗓️ Den 1 (pondělí): "
+    "\n🗓️ Den 1: "
     "\n  • Snídaně: [název receptu] "
     "\n  • Oběd: [název receptu] "
     "\n  • Večeře: [název receptu] "
-    "\n🗓️ Den 2 (úterý): "
+    "\n🗓️ Den 2: "
     "\n  • Snídaně: [název receptu] "
     "\n  • atd... "
     "\n\nVždy přidej všechny ingredience z vybraných receptů na nákupní seznam. "
-    "\nPokud si uživatel vyžádá vytvoření jídelníčku nebo plánu jídel na více dní, rovnou vytvoř i markdown dokument s tímto jídelníčkem "
     "\nVše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)"
 )
 
@@ -85,5 +84,9 @@ workflow.add_edge(START, "agent")
 workflow.add_edge("tools", "agent")
 workflow.add_conditional_edges("agent", should_continue)
 
-# Compile the app
+# Compile the app with recursion limit
 app = workflow.compile()
+
+async def create_agent():
+    """Create and return the configured agent"""
+    return app
