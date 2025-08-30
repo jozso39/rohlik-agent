@@ -21,16 +21,19 @@ describe("MCP Tools Integration Tests", () => {
     });
 
     // Get tool references with explicit type to avoid schema merging issues
-    const searchTool = mcpTools[0];  // search_recipes
-    const getAllTool = mcpTools[1];  // get_all_recipes  
-    const addTool = mcpTools[2];     // add_to_shopping_list
-    const removeTool = mcpTools[3];  // remove_from_shopping_list
+    const searchTool = mcpTools[0]; // search_recipes
+    const getAllTool = mcpTools[1]; // get_all_recipes
+    const addTool = mcpTools[2]; // add_to_shopping_list
+    const removeTool = mcpTools[3]; // remove_from_shopping_list
     const getListTool = mcpTools[4]; // get_shopping_list
-    const clearTool = mcpTools[5];   // clear_shopping_list
+    const clearTool = mcpTools[5]; // clear_shopping_list
 
     describe("Recipe Search Tool", () => {
         it("should search recipes by diet", async () => {
-            const result = await (searchTool.func as unknown as (args: { diet: string }) => Promise<string>)({ diet: "vegetarian" });
+            const result =
+                await (searchTool.func as unknown as (
+                    args: { diet: string },
+                ) => Promise<string>)({ diet: "vegetarian" });
 
             // Should return a JSON string with recipes
             assertStringIncludes(result, "recipes");
@@ -51,7 +54,10 @@ describe("MCP Tools Integration Tests", () => {
         });
 
         it("should search recipes by meal_type", async () => {
-            const result = await (searchTool.func as unknown as (args: { meal_type: string }) => Promise<string>)({ meal_type: "polévka" });
+            const result =
+                await (searchTool.func as unknown as (
+                    args: { meal_type: string },
+                ) => Promise<string>)({ meal_type: "polévka" });
 
             assertStringIncludes(result, "recipes");
             const data = JSON.parse(result);
@@ -59,7 +65,10 @@ describe("MCP Tools Integration Tests", () => {
         });
 
         it("should search recipes by name", async () => {
-            const result = await (searchTool.func as unknown as (args: { name: string }) => Promise<string>)({ name: "těstoviny" });
+            const result =
+                await (searchTool.func as unknown as (
+                    args: { name: string },
+                ) => Promise<string>)({ name: "těstoviny" });
 
             assertStringIncludes(result, "recipes");
             const data = JSON.parse(result);
@@ -69,7 +78,10 @@ describe("MCP Tools Integration Tests", () => {
 
     describe("Get All Recipes Tool", () => {
         it("should return all recipes", async () => {
-            const result = await (getAllTool.func as unknown as (args: Record<PropertyKey, never>) => Promise<string>)({});
+            const result =
+                await (getAllTool.func as unknown as (
+                    args: Record<PropertyKey, never>,
+                ) => Promise<string>)({});
 
             assertStringIncludes(result, "recipes");
             const data = JSON.parse(result);
@@ -82,7 +94,10 @@ describe("MCP Tools Integration Tests", () => {
 
     describe("Shopping List Tools", () => {
         it("should get shopping list", async () => {
-            const result = await (getListTool.func as unknown as (args: Record<PropertyKey, never>) => Promise<string>)({});
+            const result =
+                await (getListTool.func as unknown as (
+                    args: Record<PropertyKey, never>,
+                ) => Promise<string>)({});
 
             // The real server might return "shopping_list" instead of "items"
             const data = JSON.parse(result);
@@ -93,12 +108,17 @@ describe("MCP Tools Integration Tests", () => {
 
         it("should add ingredients to shopping list", async () => {
             // First clear the list to start fresh
-            await (clearTool.func as unknown as (args: Record<PropertyKey, never>) => Promise<string>)({});
+            await (clearTool.func as unknown as (
+                args: Record<PropertyKey, never>,
+            ) => Promise<string>)({});
 
             // Add some ingredients
-            const result = await (addTool.func as unknown as (args: { ingredients: string[] }) => Promise<string>)({
-                ingredients: ["test rajčata", "test cibule"],
-            });
+            const result =
+                await (addTool.func as unknown as (
+                    args: { ingredients: string[] },
+                ) => Promise<string>)({
+                    ingredients: ["test rajčata", "test cibule"],
+                });
 
             assertStringIncludes(result, "test rajčata");
             assertStringIncludes(result, "test cibule");
@@ -106,14 +126,19 @@ describe("MCP Tools Integration Tests", () => {
 
         it("should remove ingredients from shopping list", async () => {
             // First add some ingredients
-            await (addTool.func as unknown as (args: { ingredients: string[] }) => Promise<string>)({
+            await (addTool.func as unknown as (
+                args: { ingredients: string[] },
+            ) => Promise<string>)({
                 ingredients: ["test remove item"],
             });
 
             // Then remove them
-            const result = await (removeTool.func as unknown as (args: { ingredients: string[] }) => Promise<string>)({
-                ingredients: ["test remove item"],
-            });
+            const result =
+                await (removeTool.func as unknown as (
+                    args: { ingredients: string[] },
+                ) => Promise<string>)({
+                    ingredients: ["test remove item"],
+                });
 
             // Verify the result is a valid JSON response
             const parsed = JSON.parse(result);
@@ -129,12 +154,17 @@ describe("MCP Tools Integration Tests", () => {
 
         it("should clear shopping list", async () => {
             // Add some items first
-            await (addTool.func as unknown as (args: { ingredients: string[] }) => Promise<string>)({
+            await (addTool.func as unknown as (
+                args: { ingredients: string[] },
+            ) => Promise<string>)({
                 ingredients: ["test clear item"],
             });
 
             // Clear the list
-            const result = await (clearTool.func as unknown as (args: Record<PropertyKey, never>) => Promise<string>)({});
+            const result =
+                await (clearTool.func as unknown as (
+                    args: Record<PropertyKey, never>,
+                ) => Promise<string>)({});
 
             // Verify cleared response
             assertStringIncludes(result, "cleared");

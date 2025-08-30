@@ -80,7 +80,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Verify the meal plan was processed
             assertStringIncludes(result, "Test Vegetariánský Plán");
@@ -120,7 +123,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Verify multi-day structure
             assertStringIncludes(result, "Týdenní Vegetariánský Plán");
@@ -153,7 +159,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Verify different meal types are handled
             assertStringIncludes(result, "Rozmanité Jídlo");
@@ -180,7 +189,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Should still process the meal plan even if recipe doesn't exist
             assertStringIncludes(result, "Plán s Neexistujícími Recepty");
@@ -196,7 +208,10 @@ describe("Meal Plan Creation Tests", () => {
                 days: [],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Should handle empty days gracefully
             assertStringIncludes(result, "Prázdný Plán");
@@ -282,7 +297,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Check console output format
             assertStringIncludes(
@@ -325,7 +343,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Check multiple days are included
             assertStringIncludes(result, "Den 1 - Pondělí");
@@ -358,7 +379,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Check meal types are properly capitalized and ordered
             assertStringIncludes(result, "• Snídaně:");
@@ -384,7 +408,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Should still create plan even with unknown recipe
             assertStringIncludes(result, "📅 JÍDELNÍČEK: Test Unknown Recipe");
@@ -410,7 +437,10 @@ describe("Meal Plan Creation Tests", () => {
                 ],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Check the specific format requirements
             const lines = result.split("\n");
@@ -434,7 +464,10 @@ describe("Meal Plan Creation Tests", () => {
                 days: [],
             };
 
-            const result = await (mealPlanTool.func as unknown as (args: MealPlanArgs) => Promise<string>)(mealPlan);
+            const result =
+                await (mealPlanTool.func as unknown as (
+                    args: MealPlanArgs,
+                ) => Promise<string>)(mealPlan);
 
             // Should still have title
             assertStringIncludes(result, "📅 JÍDELNÍČEK: Empty Plan");
