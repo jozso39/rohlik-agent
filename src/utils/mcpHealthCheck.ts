@@ -13,6 +13,8 @@ export async function checkMCPServer(mcpBaseUrl: string): Promise<void> {
                 `MCP server responded with status: ${response.status}`,
             );
         }
+        // Consume the response body to prevent resource leaks
+        await response.text();
     } catch (error) {
         console.error("❌ MCP server není dostupný!");
         console.error(`   Ujistěte se, že MCP server běží na ${mcpBaseUrl}`);

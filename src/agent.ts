@@ -39,6 +39,7 @@ const systemMessageText =
     "- přidávat a odebírat ingredience z nákupního seznamu" +
     "- vyhledávat recepty podle diety nebo typu jídla pomocí MCP serveru" +
     "- plánovat jídelníček na více dní podle dietních požadavků uživatele" +
+    "- vytvářet dokument s jídelníčkem" +
     "\n\nPro vyhledávání receptů používej nástroje search_recipes a get_all_recipes." +
     "Pokud nenajdeš recepty pro specifickou dietu, navrhni alternativy z dostupných receptů." +
     "\n\nKdyž vytváříš jídelníček, VŽDY ho prezentuj v tomto formátu:" +
@@ -51,7 +52,8 @@ const systemMessageText =
     "\n  • Snídaně: [název receptu]" +
     "\n  • atd..." +
     "\n\nVždy přidej všechny ingredience z vybraných receptů na nákupní seznam. " +
-    "Vše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)";
+    "\nPokud si uživatel vyžádá vytvoření jídelníčku nebo plánu jídel na více dní, navrhni mu jestli nechce vytvořit dokument s jídelníčkem";
+"\nVše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)";
 
 /**
  * Invokes the model with the current state messages, prepending a system message.
