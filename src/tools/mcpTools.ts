@@ -366,8 +366,8 @@ const createMealPlanTool = new DynamicStructuredTool({
             const timestamp = new Date().toLocaleString("cs-CZ");
             mealPlanText += `*Jídelníček vytvořen: ${timestamp}*\n`;
 
-            // Create plans directory if it doesn't exist
-            const plansDir = new URL("./plans/", import.meta.resolve("./"));
+            // Create plans directory if it doesn't exist at repository root
+            const plansDir = "./plans";
             try {
                 await Deno.stat(plansDir);
             } catch {
@@ -376,7 +376,7 @@ const createMealPlanTool = new DynamicStructuredTool({
 
             // Save to file in plans directory
             const filename = `jidelnicek_${timestamp}.md`;
-            const filepath = new URL(filename, plansDir);
+            const filepath = `${plansDir}/${filename}`;
             await Deno.writeTextFile(filepath, mealPlanText);
             console.log(
                 `💾 Kompletní jídelníček s ${allRecipeNames.size} recepty byl uložen jako: plans/${filename}`,
