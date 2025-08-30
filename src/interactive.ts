@@ -117,8 +117,11 @@ async function processUserInput(userInput: string) {
     }
 }
 
+const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") ||
+    "http://localhost:8001";
+
 async function startInteractiveSession() {
-    await checkMCPServer();
+    await checkMCPServer(MCP_BASE_URL);
 
     // Handle Ctrl+C gracefully
     Deno.addSignalListener("SIGINT", async () => {
