@@ -11,7 +11,9 @@
         "test": "deno test --allow-net --allow-read --allow-write --allow-env tests/",
         "build:windows": "deno compile --allow-all --reload --output ./bin/rohbot-windows.exe src/interactive.ts",
         "build:macos": "deno compile --allow-all --reload --output ./bin/rohbot-macos src/interactive.ts",
-        "build:all": "deno task build:windows && deno task build:macos"
+        "build:all": "deno task build:windows && deno task build:macos",
+        "zip:macos":"zip -r bin/rohbot-macos.zip bin/rohbot-macos -x \"*.DS_Store\" \"__MACOSX\"",
+        "zip:windows":"zip -r bin/rohbot-windows.zip bin/rohbot-windows.exe -x \"*.DS_Store\" \"__MACOSX\""
     },
     "fmt": {
         "useTabs": false,
