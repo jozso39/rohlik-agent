@@ -20,6 +20,7 @@ console.log(
 );
 console.log("Můžeš mi poroučet například takto:");
 console.log("   • 'připrav mi týdenní plán vegetariánských jídel'");
+console.log("   • 'vytvoř mi dokument s jídelníčkem na 2 dny pro vegana'");
 console.log("   • 'přidej mrkev na nákupní seznam'");
 console.log("   • 'najdi mi recepty na vegetariánské polévky'");
 console.log("   • 'co je na mém nákupním seznamu?'");

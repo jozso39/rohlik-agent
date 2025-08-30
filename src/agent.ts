@@ -52,7 +52,7 @@ const systemMessageText =
     "\n  • Snídaně: [název receptu]" +
     "\n  • atd..." +
     "\n\nVždy přidej všechny ingredience z vybraných receptů na nákupní seznam. " +
-    "\nPokud si uživatel vyžádá vytvoření jídelníčku nebo plánu jídel na více dní, navrhni mu jestli nechce vytvořit dokument s jídelníčkem";
+    "\nPokud si uživatel vyžádá vytvoření jídelníčku nebo plánu jídel na více dní, rovnou vytvoř i markdown dokument s tímto jídelníčkem";
 "\nVše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)";
 
 /**
