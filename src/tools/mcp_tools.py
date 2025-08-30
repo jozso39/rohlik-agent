@@ -187,9 +187,10 @@ def create_meal_plan(title: str, days: List[Dict[str, Any]]) -> str:
             meal_order = ["snídaně", "oběd", "večeře", "svačina"]
             for meal_type in meal_order:
                 if meal_type in meals_by_type:
+                    emoji = meal_emojis.get(meal_type, "🍽️")
                     capitalized_type = meal_type.capitalize()
                     recipes = ", ".join(meals_by_type[meal_type])
-                    console_output += f"  • {capitalized_type}: {recipes}\n"
+                    console_output += f"  • {emoji} {capitalized_type}: {recipes}\n"
             
             console_output += "\n"
         
