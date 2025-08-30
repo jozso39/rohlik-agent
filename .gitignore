@@ -4,6 +4,27 @@
 # Dependencies
 node_modules/
 
+# Python dependencies and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Python packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
 # Build output
 build/
 *.tsbuildinfo
@@ -15,6 +36,9 @@ rohbot-windows.exe
 # IDE files
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS files
 .DS_Store
@@ -34,6 +58,9 @@ pids
 
 # Coverage directory used by tools like istanbul
 coverage/
+.coverage
+htmlcov/
+.pytest_cache/
 
 # Temporary folders
 tmp/
@@ -41,3 +68,7 @@ temp/
 
 # Generated meal plans
 plans/
+
+# Python testing and quality tools
+.mypy_cache/
+.tox/
