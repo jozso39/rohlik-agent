@@ -1,19 +1,27 @@
 # 🤖 Rohlík asistent pro plánování jídelníčku a správu nákupního seznamu (RohBot)
 
-This project implements a [LangGraph Python Agent](https://python.langchain.com/docs/langgraph/) that uses a custom built [MCP server](https://github.com/jozso39/rohlik-mcp-server). The LLM that powers the agent is OpenAI's `gpt-4o-mini`.
-Both of the projects are created as an interview assignment to [Rohlík](https://www.rohlik.cz/) company. There is no intention to deploy this code.
+This project implements a
+[LangGraph Python Agent](https://python.langchain.com/docs/langgraph/) that uses
+a custom built [MCP server](https://github.com/jozso39/rohlik-mcp-server). The
+LLM that powers the agent is OpenAI's `gpt-4o-mini`. Both of the projects are
+created as an interview assignment to [Rohlík](https://www.rohlik.cz/) company.
+There is no intention to deploy this code.
 
 The agent can:
-- Create meal plans based on user's dietary restrictions (vegetarian, low-carb, etc.)
+
+- Create meal plans based on user's dietary restrictions (vegetarian, low-carb,
+  etc.)
 - Search recipes from the MCP server by diet or meal type
 - Manipulate a shopping list via MCP server tools
 - Handle follow-up requests and maintain conversational memory
 
-**⚠️ IMPORTANT:** The conversation must be in Czech, since all the recipes are exclusively in Czech language
+**⚠️ IMPORTANT:** The conversation must be in Czech, since all the recipes are
+exclusively in Czech language
 
 ## ✨ Features
 
 The agent can:
+
 - Search for recipes by diet type, meal type, or name
 - Get all available recipes from the database
 - Add ingredients to a shopping list
@@ -49,32 +57,38 @@ The agent can:
 
 4. **Run the agent:**
    ```bash
-   # Demo version
+   # Interactive chat (main interface)
    python main.py
    
-   # Interactive chat
-   python -m src.interactive
+   # Demo version
+   python demo.py
    ```
 
 ## 📖 How-to
 
 ### 🏃‍♂️ Starting the MCP server
-Check [Shopping List MCP server](https://github.com/jozso39/rohlik-mcp-server) for instructions, the server must be running on `http://localhost:8001`
+
+Check [Shopping List MCP server](https://github.com/jozso39/rohlik-mcp-server)
+for instructions, the server must be running on `http://localhost:8001`
 
 ### 🔐 Environment Variables
+
 Create a `.env` file in the project root:
+
 ```bash
 cp .env.example .env
 # Edit .env with your OpenAI API key
 ```
 
 The `.env` file should contain:
+
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 MCP_BASE_URL=http://localhost:8001
 ```
 
 ### 🐍 Python Setup
+
 ```bash
 # Install Python 3.9+ if not already installed
 python3 --version
@@ -96,7 +110,7 @@ pip install -r requirements.txt
 Start an interactive chat session with the agent:
 
 ```bash
-python -m src.interactive
+python main.py
 ```
 
 Then you can chat naturally in Czech:
@@ -112,6 +126,7 @@ Then you can chat naturally in Czech:
 ```
 
 Special commands:
+
 - `POMOC` - Show available commands
 - `RESET` - Clear conversation history and shopping list
 - `KONEC` or `STAČILO` - Exit the application
@@ -131,10 +146,10 @@ python -m pytest tests/ -v
 ## 📁 Project Structure
 
 ```
-├── main.py                 # Demo script
+├── main.py                # Interactive CLI interface (main entry point)
+├── demo.py                # Demo script with sample interaction
 ├── src/
 │   ├── agent.py           # LangGraph agent implementation
-│   ├── interactive.py     # Interactive CLI interface
 │   ├── tools/
 │   │   └── mcp_tools.py   # MCP server integration tools
 │   └── utils/
@@ -148,17 +163,21 @@ python -m pytest tests/ -v
 ## 📚 Documentation
 
 - [MCP Setup Guide](docs/MCP_README.md) - MCP server details
-- [MCP Server API Specification](docs/swagger.yaml) - MCP server endpoints  
-- [Python Migration Guide](PYTHON_MIGRATION.md) - Details about the Python conversion
+- [MCP Server API Specification](docs/swagger.yaml) - MCP server endpoints
+- [Python Migration Guide](PYTHON_MIGRATION.md) - Details about the Python
+  conversion
 
 ## 🔄 Migration Notes
 
-This project was originally built with Deno and LangGraph.js but has been migrated to Python and LangGraph Python for better AI/ML ecosystem integration. All original functionality has been preserved with the following improvements:
+This project was originally built with Deno and LangGraph.js but has been
+migrated to Python and LangGraph Python for better AI/ML ecosystem integration.
+All original functionality has been preserved with the following improvements:
 
 - **Modern Python packaging** with pyproject.toml
-- **Async/await patterns** throughout the codebase  
+- **Async/await patterns** throughout the codebase
 - **httpx client** for robust HTTP handling
 - **pytest testing framework** with async support
 - **Type hints** and Pydantic schemas for better development experience
 
-The agent maintains full feature parity with the original TypeScript implementation while leveraging Python's rich AI/ML ecosystem.
+The agent maintains full feature parity with the original TypeScript
+implementation while leveraging Python's rich AI/ML ecosystem.
