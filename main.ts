@@ -1,14 +1,15 @@
-import "dotenv/config";
-
 import { HumanMessage } from "@langchain/core/messages";
-import { app } from "./src/agent";
-import { checkMCPServer } from "./src/utils/mcpHealthCheck";
+import { app } from "./src/agent.ts";
+import { checkMCPServer } from "./src/utils/mcpHealthCheck.ts";
 
 console.log("🤖 RohBot Demo");
 console.log("=====================================\n");
 
+const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") ||
+    "http://localhost:8001";
+
 async function main() {
-    await checkMCPServer();
+    await checkMCPServer(MCP_BASE_URL);
 
     const humanMessageText =
         "Chci abys mi vytvořil jídelníček na 3 dny dopředu. vytvoř mi i dokument s tímto plánem. Jsem vegetarian";

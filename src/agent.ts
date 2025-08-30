@@ -1,12 +1,10 @@
-// agent.mts - Main LangGraph agent with MCP tools integration
-
-import "dotenv/config";
+// agent.ts - Main LangGraph agent with MCP tools integration
 
 import { ChatOpenAI } from "@langchain/openai";
 import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
-import { mcpTools } from "./tools/mcpTools";
+import { mcpTools } from "./tools/mcpTools.ts";
 
 // Define the tools for the agent to use - only MCP tools for recipe focus
 const tools = [...mcpTools];
@@ -34,23 +32,6 @@ function shouldContinue({ messages }: typeof MessagesAnnotation.State) {
     }
     return "__end__";
 }
-/**
- * Determines the next action based on the last message in the conversation.
- *
- * If the last message contains tool calls, returns "tools" to indicate that tool processing should continue.
- * Otherwise, returns "__end__" to signal the end of the process.
- *
- * @param {MessagesAnnotation.State} param0 - An object containing the array of messages.
- * @returns {"tools" | "__end__"} - The next action to take.
- */
-function shouldContinue({ messages }: typeof MessagesAnnotation.State) {
-    const lastMessage = messages[messages.length - 1] as AIMessage;
-
-    if (lastMessage.tool_calls?.length) {
-        return "tools";
-    }
-    return "__end__";
-}
 
 const systemMessageText =
     "Jsi užitečný asistent, který komunikuje s uživateli VÝHRADNĚ V ČEŠTINĚ!" +
@@ -58,6 +39,7 @@ const systemMessageText =
     "- přidávat a odebírat ingredience z nákupního seznamu" +
     "- vyhledávat recepty podle diety nebo typu jídla pomocí MCP serveru" +
     "- plánovat jídelníček na více dní podle dietních požadavků uživatele" +
+    "- vytvářet dokument s jídelníčkem" +
     "\n\nPro vyhledávání receptů používej nástroje search_recipes a get_all_recipes." +
     "Pokud nenajdeš recepty pro specifickou dietu, navrhni alternativy z dostupných receptů." +
     "\n\nKdyž vytváříš jídelníček, VŽDY ho prezentuj v tomto formátu:" +
@@ -70,7 +52,8 @@ const systemMessageText =
     "\n  • Snídaně: [název receptu]" +
     "\n  • atd..." +
     "\n\nVždy přidej všechny ingredience z vybraných receptů na nákupní seznam. " +
-    "Vše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)";
+    "\nPokud si uživatel vyžádá vytvoření jídelníčku nebo plánu jídel na více dní, rovnou vytvoř i markdown dokument s tímto jídelníčkem";
+"\nVše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)";
 
 /**
  * Invokes the model with the current state messages, prepending a system message.
