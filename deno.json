@@ -13,7 +13,9 @@
         "build:macos": "deno compile --allow-all --reload --output ./bin/rohbot-macos src/interactive.ts",
         "build:all": "deno task build:windows && deno task build:macos",
         "zip:macos":"zip -r bin/rohbot-macos.zip bin/rohbot-macos -x \"*.DS_Store\" \"__MACOSX\"",
-        "zip:windows":"zip -r bin/rohbot-windows.zip bin/rohbot-windows.exe -x \"*.DS_Store\" \"__MACOSX\""
+        "zip:windows":"zip -r bin/rohbot-windows.zip bin/rohbot-windows.exe -x \"*.DS_Store\" \"__MACOSX\"",
+        "unzip:macos":"unzip bin/rohbot-macos.zip",
+        "unzip:windows":"unzip bin/rohbot-windows.zip"
     },
     "fmt": {
         "useTabs": false,

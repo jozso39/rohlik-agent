@@ -31,12 +31,12 @@ The agent can:
 
 ## Quick Start when you have the executables
 
-I have sent you the executables via a link to Google Drive.
-You can use it if you dont want to install Deno on your machine.
+The executables are zipped in `/bin` folder, pick the one for your OS and follow these instructions:
 
 1. Create a valid `.env` file and put it in the save folder with the executables
 2. Make sure the MCP server is running on `http://localhost:8001`
-3. run the executable with `./rohbot-macos`
+3. Unzip the requested executable with `deno task unzip:macos` or `deno task unzip:windows`
+4. Run the executable with `bin/rohbot-macos` or Windows equivalent of this command
 
 ## Quick Start for development
 1. Install deno
