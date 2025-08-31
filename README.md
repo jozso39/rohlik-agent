@@ -42,14 +42,12 @@ The agent can:
    ```bash
    git clone <repository>
    cd langgraph-js-sample
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
+   ./setup.s
    ```
 
-2. **Configure environment:**
+2. **Configure environment:** The setup script will create `.env` file from
+   `.env.example`. Edit it with your OpenAI API key:
    ```bash
-   cp .env.example .env
    # Edit .env with your OpenAI API key
    ```
 
@@ -89,13 +87,19 @@ MCP_BASE_URL=http://localhost:8001
 
 ### 🐍 Python Setup
 
+Use the automated setup script:
+
+```bash
+./setup.sh
+```
+
+Or manually:
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
-
-TODO: create a script to do the setup
 
 ---
 
