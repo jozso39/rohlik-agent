@@ -31,10 +31,11 @@ async def main():
     print(f"User: {human_message_text}")
     
     try:
-        # Invoke the agent
-        result = await app.ainvoke({
-            "messages": [HumanMessage(content=human_message_text)]
-        })
+        # Invoke the agent with recursion limit
+        result = await app.ainvoke(
+            {"messages": [HumanMessage(content=human_message_text)]},
+            {"recursion_limit": 50}
+        )
         
         # Get the last message (agent's response)
         if result["messages"]:

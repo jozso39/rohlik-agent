@@ -99,8 +99,11 @@ async def process_user_input(user_input: str) -> bool:
         user_message = HumanMessage(content=user_input)
         conversation_history.append(user_message)
         
-        # Get agent response
-        response = await app.ainvoke({"messages": conversation_history})
+        # Get agent response with recursion limit
+        response = await app.ainvoke(
+            {"messages": conversation_history}, 
+            {"recursion_limit": 50}
+        )
         
         # Get the last message (agent's response)
         if response["messages"]:

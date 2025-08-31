@@ -59,7 +59,7 @@ The agent can:
    ```bash
    # Interactive chat (main interface)
    python main.py
-   
+
    # Demo version
    python demo.py
    ```
