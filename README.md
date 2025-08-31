@@ -90,18 +90,12 @@ MCP_BASE_URL=http://localhost:8001
 ### 🐍 Python Setup
 
 ```bash
-# Install Python 3.9+ if not already installed
-python3 --version
-
-# Create virtual environment
 python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate
 pip install -r requirements.txt
 ```
+
+TODO: create a script to do the setup
 
 ---
 
