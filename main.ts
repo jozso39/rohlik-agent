@@ -21,12 +21,49 @@ async function main() {
     );
     console.log(`User: ${humanMessageText}`);
 
-    const result = await app.invoke({
-        messages: [new HumanMessage(humanMessageText)],
-    });
+    console.log("\n🎬 Streaming agent response...\n");
 
-    console.log("🍽️ Agent Response:");
-    console.log(result.messages[result.messages.length - 1].content);
+    // Use streamEvents for token-level streaming
+    const eventStream = app.streamEvents({
+        messages: [new HumanMessage(humanMessageText)],
+    }, { version: "v2" });
+
+    let isStreamingContent = false;
+    let currentContent = "";
+
+    for await (const event of eventStream) {
+        // Handle LLM token streaming
+        if (
+            event.event === "on_chat_model_stream" && event.data?.chunk?.content
+        ) {
+            if (!isStreamingContent) {
+                console.log("🤖 Agent:");
+                isStreamingContent = true;
+            }
+            // Stream tokens character by character
+            const token = event.data.chunk.content;
+            currentContent += token;
+            Deno.stdout.writeSync(new TextEncoder().encode(token));
+        }
+
+        // Handle tool calls
+        if (event.event === "on_tool_start") {
+            if (isStreamingContent) {
+                console.log("\n"); // New line after content
+                isStreamingContent = false;
+            }
+            console.log(`🔧 Používám nástroj: ${event.name}`);
+        }
+
+        // Handle tool results
+        if (event.event === "on_tool_end") {
+            console.log(`✅ Nástroj ${event.name} dokončen`);
+        }
+    }
+
+    if (isStreamingContent) {
+        console.log("\n"); // Final new line
+    }
 
     console.log(
         "\n🎯 Chceš použít tohoto agenta interaktivně? Použij: 'npm run chat'",

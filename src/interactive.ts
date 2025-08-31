@@ -99,16 +99,58 @@ async function processUserInput(userInput: string) {
         const userMessage = new HumanMessage(userInput);
         const messages = [...conversationHistory, userMessage];
 
-        // Get response from agent
-        const result = await app.invoke({ messages });
+        // Stream response from agent with token-level streaming
+        const eventStream = app.streamEvents({ messages }, { version: "v2" });
 
-        // Update conversation history
-        conversationHistory = result.messages;
+        let isStreamingContent = false;
+        let currentContent = "";
+        let finalMessages: BaseMessage[] = [];
 
-        // Display agent response
-        const agentResponse =
-            result.messages[result.messages.length - 1].content;
-        console.log("🤖 Agent:", agentResponse);
+        for await (const event of eventStream) {
+            // Handle LLM token streaming
+            if (
+                event.event === "on_chat_model_stream" &&
+                event.data?.chunk?.content
+            ) {
+                if (!isStreamingContent) {
+                    console.log("🤖 Agent:");
+                    isStreamingContent = true;
+                }
+                // Stream tokens character by character
+                const token = event.data.chunk.content;
+                currentContent += token;
+                Deno.stdout.writeSync(new TextEncoder().encode(token));
+            }
+
+            // Handle tool calls
+            if (event.event === "on_tool_start") {
+                if (isStreamingContent) {
+                    console.log("\n"); // New line after content
+                    isStreamingContent = false;
+                }
+                console.log(`🔧 Používám nástroj: ${event.name}`);
+            }
+
+            // Handle tool results
+            if (event.event === "on_tool_end") {
+                console.log(`✅ Nástroj ${event.name} dokončen`);
+            }
+
+            // Capture final state for conversation history
+            if (event.event === "on_chain_end" && event.name === "LangGraph") {
+                finalMessages = event.data.output.messages;
+            }
+        }
+
+        if (isStreamingContent) {
+            console.log("\n"); // Final new line
+        }
+
+        // Update conversation history with final messages
+        if (finalMessages.length > 0) {
+            conversationHistory = finalMessages;
+        }
+
         console.log(); // Empty line for better readability
     } catch (error) {
         console.error(

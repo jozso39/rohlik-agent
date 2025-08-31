@@ -13,6 +13,7 @@ const toolNode = new ToolNode(tools);
 const model = new ChatOpenAI({
     model: "gpt-4o-mini",
     temperature: 0,
+    streaming: true, // Enable streaming
 }).bindTools(tools);
 
 /**

@@ -41,3 +41,14 @@ temp/
 
 # Generated meal plans
 plans/
+
+# Python cache files (from migration artifacts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+*.egg-info/
+dist/
+build/
