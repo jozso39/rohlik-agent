@@ -125,3 +125,11 @@ Executables are created in the `./bin/` directory.
 - ChatOpenAI model configured with `streaming: true`
 - Progressive response generation for enhanced user experience
 - Live tool execution tracking with visual indicators
+
+## TODO
+- disable the get-all-recipes endpoint, becuase what if there is milions of the recipes
+- extend the search endpoint so that it can include or exclude ingredients
+- create endpoint to list possible diets
+- create endpoint to list possible ingredients
+- fix the problem with weird diets (non-existent in current dataset):
+  - add tool that will tavily-search for the diet that is not in our list of diets, what ingredients are included and excluded
