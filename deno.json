@@ -14,6 +14,8 @@
         "build:all": "deno task build:windows && deno task build:macos",
         "zip:macos":"zip -r bin/rohbot-macos.zip bin/rohbot-macos -x \"*.DS_Store\" \"__MACOSX\"",
         "zip:windows":"zip -r bin/rohbot-windows.zip bin/rohbot-windows.exe -x \"*.DS_Store\" \"__MACOSX\"",
+        "zip:all": "deno task zip:macos && deno task zip:windows",
+        "build:zip": "deno task build:all && deno task zip:all",
         "unzip:macos":"unzip bin/rohbot-macos.zip",
         "unzip:windows":"unzip bin/rohbot-windows.zip"
     },
