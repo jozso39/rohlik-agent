@@ -22,6 +22,8 @@ The agent can:
 - Clear the shopping list
 - Remove specific ingredients from shopping list
 - Create structured meal plans with complete recipes
+- **Real-time streaming responses** - See responses appear character by character like ChatGPT
+- **Live tool execution tracking** - Watch which tools are being used in real-time
 
 
 ## 📋 Common requirements
@@ -73,6 +75,11 @@ Start an interactive chat session with the agent:
 deno task chat
 ```
 
+**🎬 Streaming Experience:**
+- Responses appear character by character in real-time like ChatGPT
+- Live tool execution indicators: `🔧 Používám nástroj: [tool_name]`
+- Tool completion notifications: `✅ Nástroj [tool_name] dokončen`
+
 Then you can chat naturally:
 
 ```
@@ -110,3 +117,11 @@ Executables are created in the `./bin/` directory.
 
 - [MCP Setup Guide](docs/MCP_README.md) - MCP server details
 - [MCP Server API Specification](docs/swagger.yaml) - MCP server endpoints
+
+## 🚀 Technical Features
+
+**Real-time Streaming:**
+- Uses LangGraph.js `streamEvents` API for token-level streaming
+- ChatOpenAI model configured with `streaming: true`
+- Progressive response generation for enhanced user experience
+- Live tool execution tracking with visual indicators
