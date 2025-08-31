@@ -10,6 +10,9 @@ The agent can:
 - search recipes from the MCP server by diet or meal type
 
 **⚠️ IMPORTANT:** the conversation must be in Czech, since all the recipes are exclusively in Czech language
+**🐍 M0RE IMPORTANT:** If you are looking for the Python version, just change the branch to `python`
+
+
 
 ## ✨ Features
 
