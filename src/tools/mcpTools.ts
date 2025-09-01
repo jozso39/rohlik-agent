@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
     addPaginationInfo,
     fetchAllRecipeNames,
+    handleIngredientSearch,
     handleRecipeSearchFallback,
     type RecipeSearchData,
 } from "./recipeSearchHelpers.ts";
@@ -106,6 +107,48 @@ const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
             );
         } catch (error) {
             return `Error in recipe name workflow: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`;
+        }
+    },
+});
+
+const searchRecipesByIngredientsTool = new DynamicStructuredTool({
+    name: "search_recipes_by_ingredients",
+    description:
+        "Hledej recepty podle ingrediencí s inteligentním fallbackem. " +
+        "PRVNÍ POKUS: Nejdříve hledej přímo podle zadané ingredience. " +
+        "FALLBACK: Pokud nenajde žádné recepty, zobrazí dostupné ingredience pro nalezení podobných názvů. " +
+        "Použij když uživatel hledá recepty s konkrétní ingrediencí (např. 'najdi mi recept se sýrem Gruyere').",
+    schema: z.object({
+        ingredient: z
+            .string()
+            .describe(
+                "Název ingredience pro vyhledání receptů (např. 'Gruyere', 'česnek', 'rajčata')",
+            ),
+        fallback_ingredient: z
+            .string()
+            .optional()
+            .describe(
+                "Přesný název ingredience z seznamu dostupných ingrediencí (použij po fallbacku když první pokus neuspěl)",
+            ),
+        page: z
+            .number()
+            .optional()
+            .describe(
+                "Číslo stránky pro stránkování výsledků (výchozí: 1, max 10 receptů na stránku)",
+            ),
+    }),
+    func: async ({ ingredient, fallback_ingredient, page }) => {
+        try {
+            return await handleIngredientSearch(
+                ingredient,
+                fallback_ingredient,
+                page,
+                MCP_BASE_URL,
+            );
+        } catch (error) {
+            return `Error in ingredient search workflow: ${
                 error instanceof Error ? error.message : "Unknown error"
             }`;
         }
@@ -608,6 +651,7 @@ const createMealPlanTool = new DynamicStructuredTool({
 // Export all MCP tools as an array
 export const mcpTools = [
     searchRecipesByRecipeNameTool,
+    searchRecipesByIngredientsTool,
     searchRecipesTool,
     getAllIngredientsTool,
     getAllDietsTool,

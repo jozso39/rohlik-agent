@@ -31,6 +31,22 @@ export interface RecipeSearchData {
     fallback_message?: string;
 }
 
+export interface IngredientsResponse {
+    count?: number;
+    ingredients: string[];
+}
+
+export interface IngredientSearchResult {
+    message: string;
+    search_ingredient: string;
+    search_attempted?: string;
+    available_ingredients?: string[];
+    agent_instruction?: string;
+    note?: string;
+    next_step?: string;
+    suggestion?: string;
+}
+
 /**
  * Fetches all available recipe names from the MCP server
  */
@@ -202,4 +218,157 @@ export function addPaginationInfo(data: RecipeSearchData): RecipeSearchData {
     }
 
     return data;
+}
+
+/**
+ * Fetches all available ingredients from the MCP server
+ */
+export async function fetchAllIngredients(
+    baseUrl: string,
+): Promise<IngredientsResponse> {
+    const response = await fetch(`${baseUrl}/get_all_ingredients`);
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json() as IngredientsResponse;
+}
+
+/**
+ * Creates a success response for ingredient search with recipes found
+ */
+export function createIngredientSearchSuccessResponse(
+    searchIngredient: string,
+    recipesCount: number,
+    data: RecipeSearchData,
+): string {
+    const dataWithPagination = addPaginationInfo(data);
+    return JSON.stringify(
+        {
+            message:
+                `✅ Nalezeno ${recipesCount} receptů s ingrediencí "${searchIngredient}"`,
+            search_ingredient: searchIngredient,
+            ...dataWithPagination,
+        },
+        null,
+        2,
+    );
+}
+
+/**
+ * Creates a fallback response when no recipes are found with the ingredient
+ * Shows available ingredients for agent to find similar ones
+ */
+export function createIngredientSearchFallbackResponse(
+    originalIngredient: string,
+    availableIngredients: string[],
+    ingredientsCount: number,
+): string {
+    return JSON.stringify(
+        {
+            message:
+                `❌ Nenašel jsem recepty s ingrediencí "${originalIngredient}"`,
+            search_attempted: originalIngredient,
+            available_ingredients: availableIngredients,
+            agent_instruction:
+                `Prohlédni si seznam dostupných ingrediencí a najdi podobnou nebo správnou ingredienci k "${originalIngredient}". Pak použij parametr 'fallback_ingredient' s přesným názvem ze seznamu.`,
+            note: `K dispozici je ${ingredientsCount} ingrediencí`,
+            next_step:
+                "Vyber správnou ingredienci ze seznamu a zkus hledání znovu s parametrem fallback_ingredient.",
+        },
+        null,
+        2,
+    );
+}
+
+/**
+ * Creates a response when no recipes are found even with fallback ingredient
+ */
+export function createIngredientSearchNoResultsResponse(
+    searchIngredient: string,
+): string {
+    return JSON.stringify(
+        {
+            message:
+                `❌ Nenašel jsem recepty ani s ingrediencí "${searchIngredient}"`,
+            search_attempted: searchIngredient,
+            suggestion:
+                "Zkus použít jinou ingredienci nebo hledat podle více ingrediencí současně.",
+        },
+        null,
+        2,
+    );
+}
+
+/**
+ * Handles ingredient search with intelligent fallback
+ * First tries direct search, then shows available ingredients if no results
+ */
+export async function handleIngredientSearch(
+    ingredient: string,
+    fallbackIngredient: string | undefined,
+    page: number | undefined,
+    baseUrl: string,
+): Promise<string> {
+    try {
+        // Use fallback_ingredient if provided, otherwise use the original ingredient
+        const searchIngredient = fallbackIngredient || ingredient;
+
+        const params = new URLSearchParams();
+        params.append("includes_ingredients", searchIngredient);
+        if (page) params.append("page", page.toString());
+
+        const response = await fetch(
+            `${baseUrl}/search_recipes?${params.toString()}`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json() as RecipeSearchData;
+
+        // SUCCESS: Recipes found
+        if (data.recipes && data.recipes.length > 0) {
+            return createIngredientSearchSuccessResponse(
+                searchIngredient,
+                data.recipes.length,
+                data,
+            );
+        }
+
+        // FALLBACK: No recipes found - show available ingredients if this was the first attempt
+        if (!fallbackIngredient) {
+            try {
+                const ingredientsData = await fetchAllIngredients(baseUrl);
+                const availableIngredients = ingredientsData.ingredients || [];
+                const ingredientsCount = ingredientsData.count ||
+                    availableIngredients.length || 0;
+
+                return createIngredientSearchFallbackResponse(
+                    ingredient,
+                    availableIngredients,
+                    ingredientsCount,
+                );
+            } catch (fallbackError) {
+                throw new Error(
+                    `Error fetching ingredients for fallback: ${
+                        fallbackError instanceof Error
+                            ? fallbackError.message
+                            : "Unknown error"
+                    }`,
+                );
+            }
+        }
+
+        // No recipes found even with fallback ingredient
+        return createIngredientSearchNoResultsResponse(searchIngredient);
+    } catch (error) {
+        throw new Error(
+            `Error in ingredient search: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`,
+        );
+    }
 }
