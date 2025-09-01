@@ -4,12 +4,14 @@ Interactive CLI interface for the LangGraph MCP agent - Python version
 import os
 import sys
 import asyncio
+import argparse
 from typing import List
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from src.agent import app
 from src.tools.mcp_tools import clear_shopping_list
 from src.utils.mcp_health_check import check_mcp_server_sync
+from src.utils.verbose import printVerbose, set_verbose
 
 GOODBYE_MESSAGE = "\n👋 Naschledanou! Váš nákupní seznam byl vyčištěn. Díky že jste využili RohBota!"
 
@@ -46,6 +48,8 @@ def print_help():
     print("   • 'přidej brambory na nákupní seznam'")
     print("   • 'co mám na seznamu?'")
     print("   • 'odstraň mléko ze seznamu'")
+    print("\n🔧 Spuštění s verbose módem:")
+    print("   python main.py --verbose  # zobrazí detaily o spouštění nástrojů")
     print("="*50 + "\n")
 
 async def clean_shopping_list():
@@ -125,12 +129,12 @@ async def process_user_input(user_input: str) -> bool:
                     print()  # New line after content streaming
                     is_streaming_content = False
                 tool_name = event["name"]
-                print(f"\n🔧 Executing tool: {tool_name}")
+                printVerbose(f"\n🔧 Executing tool: {tool_name}")
             
             # Handle tool execution end
             elif kind == "on_tool_end":
                 tool_name = event["name"]
-                print(f"✅ Tool completed: {tool_name}")
+                printVerbose(f"✅ Tool completed: {tool_name}")
         
         # Get the final state using ainvoke (not aget_state which requires checkpointer)
         final_result = await app.ainvoke(
@@ -182,6 +186,15 @@ async def start_interactive_session():
 
 def main():
     """Main entry point"""
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="RohBot - Rohlík asistent pro plánování jídelníčku a správu nákupního seznamu")
+    parser.add_argument("-v", "--verbose", action="store_true", 
+                        help="Enable verbose output (shows tool execution details)")
+    args = parser.parse_args()
+    
+    # Set verbose mode based on command line argument
+    set_verbose(args.verbose)
+    
     try:
         asyncio.run(start_interactive_session())
     except KeyboardInterrupt:

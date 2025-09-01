@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from src.agent import app
 from src.utils.mcp_health_check import check_mcp_server_sync
+from src.utils.verbose import printVerbose, set_verbose
 
 async def main():
     """Main demo function"""
@@ -58,12 +59,12 @@ async def main():
                     print()  # New line after content streaming
                     is_streaming_content = False
                 tool_name = event["name"]
-                print(f"\n🔧 Executing tool: {tool_name}")
+                printVerbose(f"\n🔧 Executing tool: {tool_name}")
             
             # Handle tool execution end
             elif kind == "on_tool_end":
                 tool_name = event["name"]
-                print(f"✅ Tool completed: {tool_name}")
+                printVerbose(f"✅ Tool completed: {tool_name}")
         
         if is_streaming_content:
             print()  # New line after streaming
@@ -74,4 +75,5 @@ async def main():
     print("🎯 Chceš použít tohoto agenta interaktivně? Spusť: python main.py")
 
 if __name__ == "__main__":
+    set_verbose(False)
     asyncio.run(main())

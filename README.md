@@ -60,7 +60,10 @@ The agent can:
    # Interactive chat (main interface)
    python main.py
 
-   # Demo version
+   # Interactive chat with verbose output (shows tool execution details)
+   python main.py --verbose
+
+   # Demo version (always runs with clean output)
    python demo.py
    ```
 
@@ -136,6 +139,28 @@ Special commands:
 - `RESET` - Clear conversation history and shopping list
 - `KONEC` or `STAČILO` - Exit the application
 
+## 🔍 Verbose Mode
+
+The `main.py` script supports a verbose flag that shows additional debugging information:
+
+```bash
+# Run with verbose output to see tool execution details
+python main.py --verbose
+```
+
+**Note:** The `demo.py` script always runs with clean output (no verbose mode) to showcase the best user experience.
+
+In verbose mode, you'll see:
+- 🔧 Tool execution start messages
+- ✅ Tool completion confirmations
+- Additional debugging information
+
+You can also enable verbose mode using an environment variable:
+```bash
+export VERBOSE=true
+python main.py
+```
+
 ## 🧪 Testing
 
 Run the test suite:
@@ -179,7 +204,8 @@ and working in real-time.
 │   ├── tools/
 │   │   └── mcp_tools.py   # MCP server integration tools
 │   └── utils/
-│       └── mcp_health_check.py  # Health check utilities
+│       ├── mcp_health_check.py  # Health check utilities
+│       └── verbose.py     # Verbose logging utilities
 ├── tests/                 # Test suite
 ├── docs/                  # Documentation
 ├── pyproject.toml         # Python project configuration
