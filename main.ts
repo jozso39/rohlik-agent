@@ -21,7 +21,7 @@ async function main() {
     );
     console.log(`User: ${humanMessageText}`);
 
-    console.log("\n🎬 Streaming agent response...\n");
+    console.log("\n🤔 Přemýšlím...");
 
     // Use streamEvents for token-level streaming
     const eventStream = app.streamEvents({
@@ -47,22 +47,10 @@ async function main() {
         }
 
         // Handle tool calls
-        if (event.event === "on_tool_start") {
-            if (isStreamingContent) {
-                console.log("\n"); // New line after content
-                isStreamingContent = false;
-            }
-            console.log(`🔧 Používám nástroj: ${event.name}`);
+        if (event.event === "on_tool_start" && isStreamingContent) {
+            console.log("\n");
+            isStreamingContent = false;
         }
-
-        // Handle tool results
-        if (event.event === "on_tool_end") {
-            console.log(`✅ Nástroj ${event.name} dokončen`);
-        }
-    }
-
-    if (isStreamingContent) {
-        console.log("\n"); // Final new line
     }
 
     console.log(
