@@ -1,3 +1,5 @@
+import { verboseLog } from "../utils/verboseLog.ts";
+
 export interface RecipeSearchResult {
     message: string;
     search_attempted: string;
@@ -559,4 +561,65 @@ export async function handleDietSearch(
             }`,
         );
     }
+}
+
+/**
+ * Fetches multiple pages of recipes by diet to get enough variety for meal planning
+ * Returns all recipes found across multiple pages
+ */
+export async function fetchRecipesByDietWithPagination(
+    diet: string,
+    fallbackDiet: string | undefined,
+    baseUrl: string,
+    maxRecipes: number = 50,
+): Promise<
+    { recipes: unknown[]; searchDiet: string } | { fallbackResponse: string }
+> {
+    const searchDiet = fallbackDiet || diet;
+    const allRecipes: unknown[] = [];
+    let currentPage = 1;
+    const maxPages = 5; // Limit to prevent infinite loops
+
+    verboseLog(`🔍 Searching for ${searchDiet} recipes...`);
+
+    while (currentPage <= maxPages && allRecipes.length < maxRecipes) {
+        const searchResult = await handleDietSearch(
+            diet,
+            fallbackDiet,
+            currentPage,
+            baseUrl,
+        );
+
+        // Parse the search result to extract recipes
+        try {
+            const parsedResult = JSON.parse(searchResult);
+
+            // Check if this is a fallback response (no recipes found)
+            if (
+                parsedResult.available_diets ||
+                parsedResult.message?.includes("žádné recepty")
+            ) {
+                // Return the fallback response directly to let the agent handle it
+                return { fallbackResponse: searchResult };
+            }
+
+            // Check if we got recipes
+            if (parsedResult.recipes && Array.isArray(parsedResult.recipes)) {
+                allRecipes.push(...parsedResult.recipes);
+
+                // Check if there are more pages
+                if (!parsedResult.pagination?.has_next) {
+                    break;
+                }
+                currentPage++;
+            } else {
+                break;
+            }
+        } catch (parseError) {
+            console.error("Error parsing search result:", parseError);
+            break;
+        }
+    }
+
+    return { recipes: allRecipes, searchDiet };
 }

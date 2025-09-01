@@ -3,11 +3,22 @@ import { z } from "zod";
 import {
     addPaginationInfo,
     fetchAllRecipeNames,
+    fetchRecipesByDietWithPagination,
     handleDietSearch,
     handleIngredientSearch,
     handleRecipeSearchFallback,
     type RecipeSearchData,
 } from "./recipeSearchHelpers.ts";
+import {
+    addIngredientsToShoppingList,
+    categorizeRecipesByMealType,
+    createMealPlanConsoleOutput,
+    createMealPlanDocument,
+    fetchRecipeDetails,
+    generateMealPlanStructure,
+    type Recipe,
+    saveMealPlanDocument,
+} from "./mealPlanHelpers.ts";
 
 const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") || "http://localhost:8001";
 
@@ -408,238 +419,153 @@ const removeIngredientsFromShoppingListTool = new DynamicStructuredTool({
     },
 });
 
-// Tool for creating structured meal plans
-const createMealPlanTool = new DynamicStructuredTool({
-    name: "create_meal_plan",
-    description:
-        "Vytvoří strukturovaný jídelníček na více dní a uloží ho jako markdown soubor. " +
-        "DŮLEŽITÉ: MUSÍŠ POUŽÍT POUZE SKUTEČNÉ NÁZVY RECEPTŮ Z DATABÁZE! " +
-        "PŘED VYTVOŘENÍM JÍDELNÍČKU VŽDY NEJDŘÍVE VYHLEDEJ EXISTUJÍCÍ RECEPTY pomocí search_recipes nebo search_recipes_by_recipe_name podle požadované diety/ingrediencí. " +
-        "Pak použij jen ty názvy receptů, které skutečně existují v databázi. " +
-        "Nevymýšlej si názvy receptů jako 'Avokádový toast' nebo 'Smoothie bowl' - ty v české databázi nejsou!",
+// Tool for creating meal plans from diet with intelligent recipe selection
+const createMealPlanFromDietTool = new DynamicStructuredTool({
+    name: "create_meal_plan_from_diet",
+    description: "Vytvoří kompletní jídelníček na základě diety a počtu dní. " +
+        "INTELIGENTNÍ WORKFLOW: 1) Automaticky vyhledá recepty podle zadané diety " +
+        "2) Inteligentně vybere vhodné recepty pro každý typ jídla (snídaně, oběd, večeře, svačina) " +
+        "3) Vytvoří strukturovaný dokument s kompletním jídelníčkem včetně všech ingrediencí a postupů " +
+        "4) Volitelně přidá všechny ingredience na nákupní seznam " +
+        "Toto je hlavní nástroj pro vytváření jídelníčků podle požadavků z ASSIGNMENT.md!",
     schema: z.object({
-        title: z
+        diet: z
             .string()
             .describe(
-                "Název jídelníčku (např. 'Vegetariánský jídelníček na týden')",
+                "Název diety pro vyhledání receptů (např. 'vegetarian', 'vegan', 'bezlepkové', 'low-carb')",
             ),
         days: z
-            .array(
-                z.object({
-                    day_name: z
-                        .string()
-                        .describe("Název dne (např. 'Den 1 - Pondělí')"),
-                    meals: z
-                        .array(
-                            z.object({
-                                meal_type: z
-                                    .enum([
-                                        "snídaně",
-                                        "oběd",
-                                        "večeře",
-                                        "svačina",
-                                    ])
-                                    .describe(
-                                        "Typ jídla - snídaně, oběd, večeře nebo svačina",
-                                    ),
-                                recipe_name: z
-                                    .string()
-                                    .describe(
-                                        "Název receptu - MUSÍ být skutečný název z databáze! Předtím vyhledej existující recepty pomocí search_recipes.",
-                                    ),
-                            }),
-                        )
-                        .describe("Seznam jídel pro daný den"),
-                }),
-            )
-            .describe("Array objektů pro jednotlivé dny"),
+            .number()
+            .min(1)
+            .max(14)
+            .describe("Počet dní jídelníčku (1-14 dní)"),
+        meals_per_day: z
+            .array(z.enum(["snídaně", "oběd", "večeře", "svačina"]))
+            .describe(
+                "Typy jídel pro každý den (např. ['snídaně', 'oběd', 'večeře'] nebo ['oběd', 'večeře'])",
+            ),
+        title: z
+            .string()
+            .optional()
+            .describe(
+                "Vlastní název jídelníčku (pokud není zadán, vytvoří se automaticky)",
+            ),
+        add_to_shopping_list: z
+            .boolean()
+            .optional()
+            .describe(
+                "Zda přidat všechny ingredience z jídelníčku do nákupního seznamu (výchozí: false)",
+            ),
+        fallback_diet: z
+            .string()
+            .optional()
+            .describe(
+                "Přesný název diety z seznamu dostupných diet (použij po fallbacku když první pokus neuspěl)",
+            ),
     }),
-    func: async ({ title, days }) => {
-        // Meal type emoji mapping
-        const mealEmojis = {
-            snídaně: "🥐",
-            oběd: "🍽️",
-            večeře: "🌙",
-            svačina: "🍪",
-        };
+    func: async ({
+        diet,
+        days,
+        meals_per_day,
+        title,
+        add_to_shopping_list = false,
+        fallback_diet,
+    }) => {
         try {
-            // Collect all unique recipe names from the meal plan
-            const allRecipeNames = new Set<string>();
+            // STEP 1: Search for recipes using the diet search workflow
+            const searchResult = await fetchRecipesByDietWithPagination(
+                diet,
+                fallback_diet,
+                MCP_BASE_URL,
+                days * meals_per_day.length * 2, // Get enough recipes for variety
+            );
 
-            days.forEach((day) => {
+            // Check if we got a fallback response (no recipes found)
+            if ("fallbackResponse" in searchResult) {
+                return searchResult.fallbackResponse;
+            }
+
+            const { recipes: allRecipes, searchDiet } = searchResult;
+
+            if (allRecipes.length === 0) {
+                return `❌ Nepodařilo se najít žádné recepty pro dietu "${searchDiet}". Zkus použít jiný název diety nebo použij search_recipes_by_diet pro zobrazení dostupných diet.`;
+            }
+
+            // STEP 2: Categorize recipes by meal type for intelligent distribution
+            const recipesByMealType = categorizeRecipesByMealType(
+                allRecipes as Recipe[],
+            );
+
+            // STEP 3: Generate meal plan structure
+            const mealPlanDays = generateMealPlanStructure(
+                days,
+                meals_per_day,
+                recipesByMealType,
+            );
+
+            // STEP 4: Create the document title
+            const mealPlanTitle = title ||
+                `${
+                    searchDiet.charAt(0).toUpperCase() + searchDiet.slice(1)
+                } jídelníček na ${days} ${
+                    days === 1 ? "den" : days < 5 ? "dny" : "dní"
+                }`;
+
+            // STEP 5: Collect all unique recipe names and fetch detailed information
+            const allRecipeNames = new Set<string>();
+            mealPlanDays.forEach((day) => {
                 day.meals.forEach((meal) => {
                     allRecipeNames.add(meal.recipe_name);
                 });
             });
 
-            // Fetch complete recipe details for each unique recipe
-            const recipeDetails = new Map();
-
-            for (const recipeName of allRecipeNames) {
-                try {
-                    const response = await fetch(
-                        `${MCP_BASE_URL}/search_recipes?name=${
-                            encodeURIComponent(
-                                recipeName,
-                            )
-                        }`,
-                    );
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.recipes && data.recipes.length > 0) {
-                            // Take the first matching recipe
-                            recipeDetails.set(recipeName, data.recipes[0]);
-                        } else {
-                            console.log(
-                                `LOG: No recipe found for "${recipeName}" ⚠️`,
-                            );
-                            // Create a placeholder if recipe not found
-                            recipeDetails.set(recipeName, {
-                                name: recipeName,
-                                ingredients: [],
-                                steps: "Recept nebyl nalezen v databázi.",
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error(
-                        `LOG: Error fetching recipe "${recipeName}":`,
-                        error,
-                    );
-                    recipeDetails.set(recipeName, {
-                        name: recipeName,
-                        ingredients: [],
-                        steps: "Chyba při načítání receptu.",
-                    });
-                }
-            }
-
-            // Create formatted meal plan text
-            let mealPlanText = `# ${title}\n\n`;
-            days.forEach((day) => {
-                mealPlanText += `🗓️ **${day.day_name}:**\n`;
-
-                // Sort meals by type for logical ordering
-                const mealOrder = ["snídaně", "oběd", "večeře", "svačina"];
-                const sortedMeals = day.meals.sort((a, b) => {
-                    const aIndex = mealOrder.indexOf(a.meal_type);
-                    const bIndex = mealOrder.indexOf(b.meal_type);
-                    return aIndex - bIndex;
-                });
-
-                sortedMeals.forEach((meal) => {
-                    const emoji = mealEmojis[meal.meal_type] || "🍽️";
-                    const capitalizedMealType =
-                        meal.meal_type.charAt(0).toUpperCase() +
-                        meal.meal_type.slice(1);
-                    mealPlanText +=
-                        `  • ${emoji} ${capitalizedMealType}: ${meal.recipe_name}\n`;
-                });
-                mealPlanText += `\n`;
-            });
-
-            mealPlanText += `---\n\n`;
-            mealPlanText += `## Recepty\n\n`;
-
-            // Second section: Detailed recipes
-            // Collect all unique recipes that were actually found
-            const foundRecipes = new Map();
-            allRecipeNames.forEach((recipeName) => {
-                const recipe = recipeDetails.get(recipeName);
-                if (
-                    recipe &&
-                    recipe.ingredients &&
-                    recipe.ingredients.length > 0
-                ) {
-                    foundRecipes.set(recipeName, recipe);
-                }
-            });
-
-            // Generate detailed recipe sections
-            foundRecipes.forEach((recipe) => {
-                mealPlanText += `### ${recipe.name}\n\n`;
-
-                if (recipe.ingredients && recipe.ingredients.length > 0) {
-                    mealPlanText += `**Ingredience:**\n`;
-                    recipe.ingredients.forEach((ingredient: string) => {
-                        mealPlanText += `- ${ingredient}\n`;
-                    });
-                    mealPlanText += `\n`;
-                }
-
-                if (recipe.steps) {
-                    mealPlanText += `**Postup:**\n${recipe.steps}\n\n`;
-                }
-            });
-
-            // Add timestamp
-            const timestamp = new Date().toLocaleString("cs-CZ");
-            mealPlanText += `*Jídelníček vytvořen: ${timestamp}*\n`;
-
-            // Create plans directory if it doesn't exist at repository root
-            const plansDir = "./plans";
-            try {
-                await Deno.stat(plansDir);
-            } catch {
-                await Deno.mkdir(plansDir, { recursive: true });
-            }
-
-            // Save to file in plans directory
-            const filename = `jidelnicek_${timestamp}.md`;
-            const filepath = `${plansDir}/${filename}`;
-            await Deno.writeTextFile(filepath, mealPlanText);
-            console.log(
-                `💾 Kompletní jídelníček s ${allRecipeNames.size} recepty byl uložen jako: plans/${filename}`,
+            const recipeDetails = await fetchRecipeDetails(
+                allRecipeNames,
+                MCP_BASE_URL,
             );
 
-            // Create console output (simplified - no recipe steps)
-            const consoleOutput = `📅 JÍDELNÍČEK: ${title}\n\n${
-                days
-                    .map((day) => {
-                        let dayText = `🗓️ ${day.day_name}:\n`;
+            // STEP 6: Create the formatted meal plan document
+            const { content, ingredientsCount, recipesCount } =
+                createMealPlanDocument(
+                    mealPlanTitle,
+                    searchDiet,
+                    days,
+                    meals_per_day,
+                    mealPlanDays,
+                    recipeDetails,
+                );
 
-                        // Group meals by type for cleaner display
-                        const mealsByType = day.meals.reduce(
-                            (acc, meal) => {
-                                if (!acc[meal.meal_type]) {
-                                    acc[meal.meal_type] = [];
-                                }
-                                acc[meal.meal_type].push(meal.recipe_name);
-                                return acc;
-                            },
-                            {} as Record<string, string[]>,
-                        );
+            // STEP 7: Save the document to file
+            const filename = await saveMealPlanDocument(
+                content,
+                days,
+            );
 
-                        // Display meals in preferred order
-                        const mealOrder = [
-                            "snídaně",
-                            "oběd",
-                            "večeře",
-                            "svačina",
-                        ];
-                        mealOrder.forEach((mealType) => {
-                            if (mealsByType[mealType]) {
-                                const capitalizedType =
-                                    mealType.charAt(0).toUpperCase() +
-                                    mealType.slice(1);
-                                dayText += `  • ${capitalizedType}: ${
-                                    mealsByType[
-                                        mealType
-                                    ].join(", ")
-                                }\n`;
-                            }
-                        });
+            // STEP 8: Optionally add ingredients to shopping list
+            let shoppingListResult = "";
+            if (add_to_shopping_list) {
+                shoppingListResult = await addIngredientsToShoppingList(
+                    recipeDetails,
+                    MCP_BASE_URL,
+                );
+            }
 
-                        return dayText;
-                    })
-                    .join("\n")
-            }`;
+            // STEP 9: Create user-friendly console output
+            const consoleOutput = createMealPlanConsoleOutput(
+                mealPlanTitle,
+                filename,
+                searchDiet,
+                days,
+                recipesCount,
+                ingredientsCount,
+                mealPlanDays,
+                shoppingListResult,
+            );
 
             return consoleOutput;
         } catch (error) {
-            return `Error creating meal plan: ${
-                error instanceof Error ? error.message : "Unknown error"
+            return `❌ Chyba při vytváření jídelníčku: ${
+                error instanceof Error ? error.message : "Neznámá chyba"
             }`;
         }
     },
@@ -655,5 +581,5 @@ export const mcpTools = [
     removeIngredientsFromShoppingListTool,
     getShoppingListTool,
     clearShoppingListTool,
-    createMealPlanTool,
+    createMealPlanFromDietTool,
 ];
