@@ -40,22 +40,15 @@ The agent can:
 
 ## 🚀 Quick Start
 
-1. **Clone and setup:**
-   ```bash
-   git clone <repository>
-   cd langgraph-js-sample
-   ./setup.s
-   ```
-
-2. **Configure environment:** The setup script will create `.env` file from
+1. **Configure environment:** The setup script will create `.env` file from
    `.env.example`. Edit it with your OpenAI API key:
    ```bash
    # Edit .env with your OpenAI API key
    ```
 
-3. **Start the MCP server** (see MCP Setup Guide below)
+2. **Start the MCP server** (see MCP Setup Guide below)
 
-4. **Run the agent:**
+3. **Run the agent:**
    ```bash
    # Interactive chat (main interface)
    python main.py
@@ -141,95 +134,26 @@ Special commands:
 
 ## 🔍 Verbose Mode
 
-The `main.py` script supports a verbose flag that shows additional debugging information:
+The `main.py` script supports a verbose flag that shows additional debugging
+information:
 
 ```bash
 # Run with verbose output to see tool execution details
 python main.py --verbose
 ```
 
-**Note:** The `demo.py` script always runs with clean output (no verbose mode) to showcase the best user experience.
-
-In verbose mode, you'll see:
-- 🔧 Tool execution start messages
-- ✅ Tool completion confirmations
-- Additional debugging information
-
-You can also enable verbose mode using an environment variable:
-```bash
-export VERBOSE=true
-python main.py
-```
+**Note:** The `demo.py` script always runs with clean output (no verbose mode)
+to showcase the best user experience.
 
 ## 🧪 Testing
 
 Run the test suite:
 
 ```bash
-# Activate virtual environment
-source venv/bin/activate
-
-# Run tests
 python -m pytest tests/ -v
-```
-
-## 🌊 Streaming Features
-
-The agent implements **real-time token streaming** using LangGraph's streaming
-capabilities:
-
-- **Token-level streaming**: See responses character by character as the LLM
-  generates them
-- **Tool execution tracking**: Live updates when tools are being executed
-- **Event-driven architecture**: Uses LangGraph's `astream_events` for
-  comprehensive streaming
-
-The streaming is implemented using:
-
-- `ChatOpenAI` with `streaming=True` for token-level output
-- LangGraph's `astream_events` API for event-driven streaming
-- Real-time console output with proper flushing for immediate display
-
-This provides a ChatGPT-like experience where users can see the agent "thinking"
-and working in real-time.
-
-## 📁 Project Structure
-
-```
-├── main.py                # Interactive CLI interface (main entry point)
-├── demo.py                # Demo script with sample interaction
-├── setup.sh               # Automated setup script
-├── src/
-│   ├── agent.py           # LangGraph agent implementation
-│   ├── tools/
-│   │   └── mcp_tools.py   # MCP server integration tools
-│   └── utils/
-│       ├── mcp_health_check.py  # Health check utilities
-│       └── verbose.py     # Verbose logging utilities
-├── tests/                 # Test suite
-├── docs/                  # Documentation
-├── pyproject.toml         # Python project configuration
-└── requirements.txt       # Python dependencies
 ```
 
 ## 📚 Documentation
 
 - [MCP Setup Guide](docs/MCP_README.md) - MCP server details
 - [MCP Server API Specification](docs/swagger.yaml) - MCP server endpoints
-- [Python Migration Guide](PYTHON_MIGRATION.md) - Details about the Python
-  conversion
-
-## 🔄 Migration Notes
-
-This project was originally built with Deno and LangGraph.js but has been
-migrated to Python and LangGraph Python for better AI/ML ecosystem integration.
-All original functionality has been preserved with the following improvements:
-
-- **Modern Python packaging** with pyproject.toml
-- **Async/await patterns** throughout the codebase
-- **httpx client** for robust HTTP handling
-- **pytest testing framework** with async support
-- **Type hints** and Pydantic schemas for better development experience
-
-The agent maintains full feature parity with the original TypeScript
-implementation while leveraging Python's rich AI/ML ecosystem.
