@@ -32,6 +32,7 @@ const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
     description: "Implementuje workflow pro vyhledávání receptů podle názvu. " +
         "PRVNÍ KROK: Pokud uživatel chce recepty podle názvu, ale nespecifikoval konkrétní název, nastav 'show_available_names' na true pro zobrazení všech dostupných názvů receptů. " +
         "DRUHÝ KROK: Poté co uživatel vybere konkrétní název z seznamu, hledej podle tohoto názvu. " +
+        "DŮLEŽITÉ!!!: NIKDY NEVYPISUJ UŽIVATELI CELÝ SEZNAM RECEPTŮ! JE PŘÍLIŠ DLOUHÝ! " +
         "Podporuje částečnou shodu a stránkování výsledků (max 10 receptů na stránku).",
     schema: z.object({
         show_available_names: z
@@ -78,10 +79,6 @@ const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
 
                 // FALLBACK: If no recipes found, show available recipe names
                 if (!data.recipes || data.recipes.length === 0) {
-                    console.log(
-                        `No recipes found for "${name}", showing available options`,
-                    );
-
                     try {
                         const namesResponse = await fetch(
                             `${MCP_BASE_URL}/get_recipe_names`,
@@ -90,29 +87,80 @@ const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
                         if (namesResponse.ok) {
                             const namesData = await namesResponse.json();
 
-                            // Instead of hardcoded matching, let the agent analyze the available recipes
-                            // and intelligently suggest the best matches
-                            const fallbackResponse = {
-                                task: "intelligent_recipe_matching",
-                                message:
-                                    `❌ Nenašel jsem přesný recept "${name}"`,
-                                search_attempted: name,
-                                available_recipes: {
-                                    count: namesData.count,
-                                    recipe_names: namesData.recipe_names,
-                                },
-                                agent_instruction:
-                                    `Prosím, proanalyzuj všechny dostupné recepty a najdi ty, které nejlépe odpovídají hledanému "${name}". 
-                                Uvažuj o:
-                                - Synonymech a alternativních názvech (např. "gulášovka" = "gulášová polévka")
-                                - Podobných pokrmech nebo variantách
-                                - Částečných shodách v názvu
-                                Vrať maximálně 3-5 nejlepších návrhů s vysvětlením, proč jsou relevantní.`,
-                                next_step:
-                                    "Agent analyzuje dostupné recepty a navrhne nejlepší shody.",
-                            };
+                            // Instead of showing all recipes to the agent, let's do basic filtering first
+                            // and only pass a manageable subset for intelligent analysis
+                            const searchTerm = name.toLowerCase();
 
-                            return JSON.stringify(fallbackResponse, null, 2);
+                            // Basic filtering to reduce the list before sending to agent
+                            const relevantRecipes = namesData.recipe_names
+                                .filter((recipeName: string) => {
+                                    const recipeNameLower = recipeName
+                                        .toLowerCase();
+                                    // Check for partial matches or common word fragments
+                                    return recipeNameLower.includes(
+                                        searchTerm,
+                                    ) ||
+                                        searchTerm.includes(recipeNameLower) ||
+                                        // Check individual words for broader matching
+                                        searchTerm.split(/\s+/).some((word) =>
+                                            word.length >= 3 &&
+                                            recipeNameLower.includes(word)
+                                        ) ||
+                                        recipeNameLower.split(/\s+/).some(
+                                            (word) =>
+                                                word.length >= 3 &&
+                                                searchTerm.includes(word),
+                                        );
+                                }).slice(0, 20); // Limit to max 20 for agent analysis
+
+                            if (relevantRecipes.length > 0) {
+                                // Found some potentially relevant recipes - let agent analyze them
+                                const fallbackResponse = {
+                                    task: "intelligent_recipe_matching",
+                                    message:
+                                        `❌ Nenašel jsem přesný recept "${name}"`,
+                                    search_attempted: name,
+                                    available_recipes: {
+                                        count: relevantRecipes.length,
+                                        recipe_names: relevantRecipes,
+                                        note:
+                                            `Zobrazuji ${relevantRecipes.length} nejrelevantnějších receptů z celkového počtu ${namesData.count}`,
+                                    },
+                                    agent_instruction:
+                                        `Proanalyzuj tyto recepty a najdi ty, které nejlépe odpovídají hledanému "${name}". 
+                                    Uvažuj o synonymech, podobných pokrmech a variantách.
+                                    Vrať maximálně 3-5 nejlepších návrhů s krátkým vysvětlením, proč jsou relevantní.`,
+                                    next_step:
+                                        "Agent analyzuje vyfiltrované recepty a navrhne nejlepší shody.",
+                                };
+                                return JSON.stringify(
+                                    fallbackResponse,
+                                    null,
+                                    2,
+                                );
+                            } else {
+                                // No relevant recipes found - suggest alternative approach
+                                // TODO: use tavily search fallback to look for similar recipes and compare this with the list of existing recipes
+                                const fallbackResponse = {
+                                    message:
+                                        `❓ Nenašel jsem recepty podobné "${name}"`,
+                                    search_attempted: name,
+                                    suggestion:
+                                        "Tento recept není v naší databázi. Zkus:",
+                                    alternatives: [
+                                        "Použít obecnější termíny (např. 'polévka', 'hlavní chod', 'desert')",
+                                        "Hledat podle ingrediencí které používá tento pokrm",
+                                        "Hledat podle typu kuchyně nebo diety",
+                                    ],
+                                    next_step:
+                                        "Nebo řekni mi více o tom, jaký typ jídla hledáš a já ti navrhnu podobné recepty.",
+                                };
+                                return JSON.stringify(
+                                    fallbackResponse,
+                                    null,
+                                    2,
+                                );
+                            }
                         }
                     } catch (fallbackError) {
                         console.error(
