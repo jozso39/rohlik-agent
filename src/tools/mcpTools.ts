@@ -2,34 +2,12 @@ import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
 import {
     addPaginationInfo,
+    fetchAllRecipeNames,
     handleRecipeSearchFallback,
     type RecipeSearchData,
 } from "./recipeSearchHelpers.ts";
 
 const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") || "http://localhost:8001";
-
-const showExistingRecipeNames = async (MCP_BASE_URL: string) => {
-    const response = await fetch(
-        `${MCP_BASE_URL}/get_recipe_names`,
-    );
-
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // Format the response for better user experience
-    const guidance = {
-        message: "📋 Dostupné názvy receptů:",
-        count: data.count,
-        recipe_names: data.recipe_names,
-        next_step:
-            "Vyber si konkrétní název receptu z tohoto seznamu a použij jej v parametru 'name' pro vyhledání receptu.",
-    };
-
-    return JSON.stringify(guidance, null, 2);
-};
 
 // Tool for searching recipes by name with guided discovery
 const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
@@ -63,7 +41,26 @@ const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
         try {
             // STEP 1: Show available recipe names if requested
             if (show_available_names && !name) {
-                return showExistingRecipeNames(MCP_BASE_URL);
+                try {
+                    const namesData = await fetchAllRecipeNames(MCP_BASE_URL);
+                    return JSON.stringify(
+                        {
+                            message:
+                                `📋 K dispozici je ${namesData.count} receptů`,
+                            available_recipe_names: namesData.recipe_names,
+                            instruction:
+                                "Vyber si konkrétní název receptu a použij parametr 'name' pro vyhledání.",
+                            note:
+                                "POZOR: Seznam je dlouhý - použij Ctrl+F pro rychlé hledání konkrétního názvu.",
+                        },
+                        null,
+                        2,
+                    );
+                } catch (error) {
+                    return `Error fetching recipe names: ${
+                        error instanceof Error ? error.message : "Unknown error"
+                    }`;
+                }
             }
 
             // STEP 2: Search by specific recipe name
@@ -109,6 +106,54 @@ const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
             );
         } catch (error) {
             return `Error in recipe name workflow: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`;
+        }
+    },
+});
+
+// Tool for getting all available ingredients
+const getAllIngredientsTool = new DynamicStructuredTool({
+    name: "get_all_ingredients",
+    description:
+        "Vrátí seznam všech dostupných ingrediencí z databáze receptů. Užitečné pro zjištění, které ingredience jsou k dispozici nebo pro návrhy ingrediencí uživateli.",
+    schema: z.object({}),
+    func: async () => {
+        try {
+            const response = await fetch(`${MCP_BASE_URL}/get_all_ingredients`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return JSON.stringify(data, null, 2);
+        } catch (error) {
+            return `Error getting ingredients: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`;
+        }
+    },
+});
+
+// Tool for getting all available diet types
+const getAllDietsTool = new DynamicStructuredTool({
+    name: "get_all_diets",
+    description:
+        "Vrátí seznam všech dostupných typů diet z databáze receptů. Užitečné pro zjištění dostupných dietních kategorií nebo pro návrhy uživateli.",
+    schema: z.object({}),
+    func: async () => {
+        try {
+            const response = await fetch(`${MCP_BASE_URL}/get_all_diets`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return JSON.stringify(data, null, 2);
+        } catch (error) {
+            return `Error getting diets: ${
                 error instanceof Error ? error.message : "Unknown error"
             }`;
         }
@@ -191,54 +236,6 @@ const searchRecipesTool = new DynamicStructuredTool({
             return JSON.stringify(dataWithPagination, null, 2);
         } catch (error) {
             return `Error searching recipes: ${
-                error instanceof Error ? error.message : "Unknown error"
-            }`;
-        }
-    },
-});
-
-// Tool for getting all available ingredients
-const getAllIngredientsTool = new DynamicStructuredTool({
-    name: "get_all_ingredients",
-    description:
-        "Vrátí seznam všech dostupných ingrediencí z databáze receptů. Užitečné pro zjištění, které ingredience jsou k dispozici nebo pro návrhy ingrediencí uživateli.",
-    schema: z.object({}),
-    func: async () => {
-        try {
-            const response = await fetch(`${MCP_BASE_URL}/get_all_ingredients`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return JSON.stringify(data, null, 2);
-        } catch (error) {
-            return `Error getting ingredients: ${
-                error instanceof Error ? error.message : "Unknown error"
-            }`;
-        }
-    },
-});
-
-// Tool for getting all available diet types
-const getAllDietsTool = new DynamicStructuredTool({
-    name: "get_all_diets",
-    description:
-        "Vrátí seznam všech dostupných typů diet z databáze receptů. Užitečné pro zjištění dostupných dietních kategorií nebo pro návrhy uživateli.",
-    schema: z.object({}),
-    func: async () => {
-        try {
-            const response = await fetch(`${MCP_BASE_URL}/get_all_diets`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return JSON.stringify(data, null, 2);
-        } catch (error) {
-            return `Error getting diets: ${
                 error instanceof Error ? error.message : "Unknown error"
             }`;
         }
