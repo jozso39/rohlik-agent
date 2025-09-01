@@ -200,30 +200,6 @@ const searchRecipesByDietTool = new DynamicStructuredTool({
     },
 });
 
-// Tool for getting all available ingredients
-const getAllIngredientsTool = new DynamicStructuredTool({
-    name: "get_all_ingredients",
-    description:
-        "Vrátí seznam všech dostupných ingrediencí z databáze receptů. Užitečné pro zjištění, které ingredience jsou k dispozici nebo pro návrhy ingrediencí uživateli.",
-    schema: z.object({}),
-    func: async () => {
-        try {
-            const response = await fetch(`${MCP_BASE_URL}/get_all_ingredients`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return JSON.stringify(data, null, 2);
-        } catch (error) {
-            return `Error getting ingredients: ${
-                error instanceof Error ? error.message : "Unknown error"
-            }`;
-        }
-    },
-});
-
 // Tool for searching recipes by criteria (excluding name)
 const searchRecipesTool = new DynamicStructuredTool({
     name: "search_recipes",
@@ -675,7 +651,6 @@ export const mcpTools = [
     searchRecipesByIngredientsTool,
     searchRecipesByDietTool,
     searchRecipesTool,
-    getAllIngredientsTool,
     addIngredientsToShoppingListTool,
     removeIngredientsFromShoppingListTool,
     getShoppingListTool,
