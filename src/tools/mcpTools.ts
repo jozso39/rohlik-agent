@@ -472,7 +472,7 @@ const createMealPlanFromDietTool = new DynamicStructuredTool({
         fallback_diet,
     }) => {
         try {
-            // STEP 1: Search for recipes using the diet search workflow
+            // Search for recipes using the diet search workflow
             const searchResult = await fetchRecipesByDietWithPagination(
                 diet,
                 fallback_diet,
@@ -491,19 +491,19 @@ const createMealPlanFromDietTool = new DynamicStructuredTool({
                 return `❌ Nepodařilo se najít žádné recepty pro dietu "${searchDiet}". Zkus použít jiný název diety nebo použij search_recipes_by_diet pro zobrazení dostupných diet.`;
             }
 
-            // STEP 2: Categorize recipes by meal type for intelligent distribution
+            // Categorize recipes by meal type for intelligent distribution
             const recipesByMealType = categorizeRecipesByMealType(
                 allRecipes as Recipe[],
             );
 
-            // STEP 3: Generate meal plan structure
+            // Generate meal plan structure
             const mealPlanDays = generateMealPlanStructure(
                 days,
                 meals_per_day,
                 recipesByMealType,
             );
 
-            // STEP 4: Create the document title
+            // Create the document title
             const mealPlanTitle = title ||
                 `${
                     searchDiet.charAt(0).toUpperCase() + searchDiet.slice(1)
@@ -511,7 +511,7 @@ const createMealPlanFromDietTool = new DynamicStructuredTool({
                     days === 1 ? "den" : days < 5 ? "dny" : "dní"
                 }`;
 
-            // STEP 5: Collect all unique recipe names and fetch detailed information
+            // Collect all unique recipe names and fetch detailed information
             const allRecipeNames = new Set<string>();
             mealPlanDays.forEach((day) => {
                 day.meals.forEach((meal) => {
@@ -524,7 +524,7 @@ const createMealPlanFromDietTool = new DynamicStructuredTool({
                 MCP_BASE_URL,
             );
 
-            // STEP 6: Create the formatted meal plan document
+            // Create the formatted meal plan document
             const { content, ingredientsCount, recipesCount } =
                 createMealPlanDocument(
                     mealPlanTitle,
@@ -535,13 +535,10 @@ const createMealPlanFromDietTool = new DynamicStructuredTool({
                     recipeDetails,
                 );
 
-            // STEP 7: Save the document to file
-            const filename = await saveMealPlanDocument(
-                content,
-                days,
-            );
+            // Save the document to file
+            const filename = await saveMealPlanDocument(content);
 
-            // STEP 8: Optionally add ingredients to shopping list
+            // Optionally add ingredients to shopping list
             let shoppingListResult = "";
             if (add_to_shopping_list) {
                 shoppingListResult = await addIngredientsToShoppingList(
@@ -550,7 +547,7 @@ const createMealPlanFromDietTool = new DynamicStructuredTool({
                 );
             }
 
-            // STEP 9: Create user-friendly console output
+            // Create user-friendly console output
             const consoleOutput = createMealPlanConsoleOutput(
                 mealPlanTitle,
                 filename,

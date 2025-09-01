@@ -287,7 +287,6 @@ export function createMealPlanDocument(
  */
 export async function saveMealPlanDocument(
     content: string,
-    days: number,
 ): Promise<string> {
     // Create plans directory if it doesn't exist at repository root
     const plansDir = "./plans";
