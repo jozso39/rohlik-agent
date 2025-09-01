@@ -375,7 +375,11 @@ const removeIngredientsFromShoppingListTool = new DynamicStructuredTool({
 const createMealPlanTool = new DynamicStructuredTool({
     name: "create_meal_plan",
     description:
-        "Vytvoří strukturovaný jídelníček na více dní a uloží ho jako markdown soubor. Použij tento nástroj po vytvoření jídelníčku na několik dní dopředu.",
+        "Vytvoří strukturovaný jídelníček na více dní a uloží ho jako markdown soubor. " +
+        "DŮLEŽITÉ: MUSÍŠ POUŽÍT POUZE SKUTEČNÉ NÁZVY RECEPTŮ Z DATABÁZE! " +
+        "PŘED VYTVOŘENÍM JÍDELNÍČKU VŽDY NEJDŘÍVE VYHLEDEJ EXISTUJÍCÍ RECEPTY pomocí search_recipes nebo search_recipes_by_recipe_name podle požadované diety/ingrediencí. " +
+        "Pak použij jen ty názvy receptů, které skutečně existují v databázi. " +
+        "Nevymýšlej si názvy receptů jako 'Avokádový toast' nebo 'Smoothie bowl' - ty v české databázi nejsou!",
     schema: z.object({
         title: z
             .string()
@@ -403,7 +407,7 @@ const createMealPlanTool = new DynamicStructuredTool({
                                     ),
                                 recipe_name: z
                                     .string()
-                                    .describe("Název receptu"),
+                                    .describe("Název receptu - MUSÍ být skutečný název z databáze! Předtím vyhledej existující recepty pomocí search_recipes."),
                             }),
                         )
                         .describe("Seznam jídel pro daný den"),

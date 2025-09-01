@@ -56,6 +56,8 @@ const systemMessageText =
     "\n🗓️ Den 2 (úterý):" +
     "\n  🥐 Snídaně: [název receptu]" +
     "\n  • atd..." +
+    "\n\nDŮLEŽITÉ PRO JÍDELNÍČKY: PŘED vytvořením jídelníčku VŽDY nejdříve vyhledej skutečné recepty z databáze pomocí search_recipes podle požadované diety/ingrediencí. " +
+    "Používej POUZE názvy receptů které skutečně existují v databázi! Nevymýšlej si názvy jako 'Avokádový toast' nebo 'Smoothie bowl'." +
     "\n\nPokud si uživatel vyžádá recept nebo jídelníček (meal plan), zeptej se jestli chce přidat ingredience na nákupní seznam. " +
     "\nPokud si uživatel vyžádá vytvoření jídelníčku nebo plánu jídel na více dní, rovnou vytvoř i markdown dokument s tímto jídelníčkem";
 "\nPOZOR! Vše na co odpovídáš se píše do bash konzole, TAKŽE NEPOUŽÍVEJ MARKDOWN FORMÁTOVÁNÍ! ale můžeš používat emoji";
