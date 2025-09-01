@@ -407,7 +407,9 @@ const createMealPlanTool = new DynamicStructuredTool({
                                     ),
                                 recipe_name: z
                                     .string()
-                                    .describe("Název receptu - MUSÍ být skutečný název z databáze! Předtím vyhledej existující recepty pomocí search_recipes."),
+                                    .describe(
+                                        "Název receptu - MUSÍ být skutečný název z databáze! Předtím vyhledej existující recepty pomocí search_recipes.",
+                                    ),
                             }),
                         )
                         .describe("Seznam jídel pro daný den"),

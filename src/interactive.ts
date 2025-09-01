@@ -4,6 +4,7 @@ import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { app } from "./agent.ts";
 import { clearShoppingListTool } from "./tools/mcpTools.ts";
 import { checkMCPServer } from "./utils/mcpHealthCheck.ts";
+import { verboseLog } from "./utils/verboseLog.ts";
 import { loadEnv } from "./utils/loadEnv.ts";
 
 const goodbyeMessage =
@@ -128,12 +129,12 @@ async function processUserInput(userInput: string) {
                     console.log("\n"); // New line after content
                     isStreamingContent = false;
                 }
-                console.log(`🔧 Používám nástroj: ${event.name}`);
+                verboseLog(`🔧 Používám nástroj: ${event.name}`);
             }
 
             // Handle tool results
             if (event.event === "on_tool_end") {
-                console.log(`✅ Nástroj ${event.name} dokončen`);
+                verboseLog(`✅ Nástroj ${event.name} dokončen`);
             }
 
             // Capture final state for conversation history
@@ -172,8 +173,8 @@ async function startInteractiveSession() {
 
     // Handle Ctrl+C gracefully
     Deno.addSignalListener("SIGINT", async () => {
-        console.log(goodbyeMessage);
         await cleanShopingList();
+        console.log(goodbyeMessage);
         Deno.exit(0);
     });
 
@@ -184,8 +185,6 @@ async function startInteractiveSession() {
             await processUserInput(input);
         } catch (error) {
             if (error instanceof Deno.errors.Interrupted) {
-                console.log(goodbyeMessage);
-                await cleanShopingList();
                 Deno.exit(0);
             }
             console.error("Error reading input:", error);
