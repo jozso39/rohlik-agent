@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
     addPaginationInfo,
     fetchAllRecipeNames,
+    handleDietSearch,
     handleIngredientSearch,
     handleRecipeSearchFallback,
     type RecipeSearchData,
@@ -155,6 +156,50 @@ const searchRecipesByIngredientsTool = new DynamicStructuredTool({
     },
 });
 
+// Tool for searching recipes by diet with intelligent fallback
+const searchRecipesByDietTool = new DynamicStructuredTool({
+    name: "search_recipes_by_diet",
+    description:
+        "Hledej recepty podle diety s inteligentním fallbackem a podporou stránkování. " +
+        "PRVNÍ POKUS: Nejdříve hledej přímo podle zadané diety. " +
+        "STRÁNKOVÁNÍ: Pokud agent nenajde dostatek receptů, může listovat dalšími stránkami. " +
+        "FALLBACK: Pokud nenajde žádné recepty, zobrazí dostupné diety pro nalezení podobných názvů. " +
+        "Použij když uživatel hledá recepty podle diety (např. 'najdi mi vegetariánské recepty', 'bezlepkové jídlo').",
+    schema: z.object({
+        diet: z
+            .string()
+            .describe(
+                "Název diety pro vyhledání receptů (např. 'vegetarian', 'bezlepkové', 'vegan')",
+            ),
+        fallback_diet: z
+            .string()
+            .optional()
+            .describe(
+                "Přesný název diety z seznamu dostupných diet (použij po fallbacku když první pokus neuspěl)",
+            ),
+        page: z
+            .number()
+            .optional()
+            .describe(
+                "Číslo stránky pro stránkování výsledků (výchozí: 1, max 10 receptů na stránku). Použij pro listování dalšími stránkami.",
+            ),
+    }),
+    func: async ({ diet, fallback_diet, page }) => {
+        try {
+            return await handleDietSearch(
+                diet,
+                fallback_diet,
+                page,
+                MCP_BASE_URL,
+            );
+        } catch (error) {
+            return `Error in diet search workflow: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`;
+        }
+    },
+});
+
 // Tool for getting all available ingredients
 const getAllIngredientsTool = new DynamicStructuredTool({
     name: "get_all_ingredients",
@@ -173,30 +218,6 @@ const getAllIngredientsTool = new DynamicStructuredTool({
             return JSON.stringify(data, null, 2);
         } catch (error) {
             return `Error getting ingredients: ${
-                error instanceof Error ? error.message : "Unknown error"
-            }`;
-        }
-    },
-});
-
-// Tool for getting all available diet types
-const getAllDietsTool = new DynamicStructuredTool({
-    name: "get_all_diets",
-    description:
-        "Vrátí seznam všech dostupných typů diet z databáze receptů. Užitečné pro zjištění dostupných dietních kategorií nebo pro návrhy uživateli.",
-    schema: z.object({}),
-    func: async () => {
-        try {
-            const response = await fetch(`${MCP_BASE_URL}/get_all_diets`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return JSON.stringify(data, null, 2);
-        } catch (error) {
-            return `Error getting diets: ${
                 error instanceof Error ? error.message : "Unknown error"
             }`;
         }
@@ -652,9 +673,9 @@ const createMealPlanTool = new DynamicStructuredTool({
 export const mcpTools = [
     searchRecipesByRecipeNameTool,
     searchRecipesByIngredientsTool,
+    searchRecipesByDietTool,
     searchRecipesTool,
     getAllIngredientsTool,
-    getAllDietsTool,
     addIngredientsToShoppingListTool,
     removeIngredientsFromShoppingListTool,
     getShoppingListTool,
