@@ -31,24 +31,47 @@ async def main():
     print(f"User: {human_message_text}")
     
     try:
-        # Invoke the agent with recursion limit
-        result = await app.ainvoke(
-            {"messages": [HumanMessage(content=human_message_text)]},
-            {"recursion_limit": 50}
-        )
+        print("\n🤔 Přemýšlím... ", end="", flush=True)
         
-        # Get the last message (agent's response)
-        if result["messages"]:
-            agent_response = result["messages"][-1]
-            print("🍽️ Agent Response:")
-            print(agent_response.content)
-        else:
-            print("⚠️ No response received from agent")
+        # Track if we're currently streaming content from the LLM
+        is_streaming_content = False
+        
+        # Stream events from the agent to demonstrate real-time responses
+        async for event in app.astream_events(
+            {"messages": [HumanMessage(content=human_message_text)]},
+            {"recursion_limit": 50},
+            version="v1"
+        ):
+            kind = event["event"]
+            
+            # Handle LLM token streaming
+            if kind == "on_chat_model_stream":
+                data = event.get("data", {})
+                chunk = data.get("chunk")
+                if chunk and hasattr(chunk, 'content') and chunk.content:
+                    print(chunk.content, end="", flush=True)
+                    is_streaming_content = True
+            
+            # Handle tool execution start
+            elif kind == "on_tool_start":
+                if is_streaming_content:
+                    print()  # New line after content streaming
+                    is_streaming_content = False
+                tool_name = event["name"]
+                print(f"\n🔧 Executing tool: {tool_name}")
+            
+            # Handle tool execution end
+            elif kind == "on_tool_end":
+                tool_name = event["name"]
+                print(f"✅ Tool completed: {tool_name}")
+        
+        if is_streaming_content:
+            print()  # New line after streaming
             
     except Exception as error:
-        print(f"❌ Error during demo: {error}")
+        print(f"\n❌ Error during demo: {error}")
     
-    print("\n🎯 Chceš použít tohoto agenta interaktivně? Spusť: python main.py")
+    print("🎯 Chceš použít tohoto agenta interaktivně? Spusť: python main.py")
 
 if __name__ == "__main__":
     asyncio.run(main())

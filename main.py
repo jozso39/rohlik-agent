@@ -52,7 +52,6 @@ async def clean_shopping_list():
     """Clear the shopping list"""
     try:
         result = clear_shopping_list.invoke({})
-        print("🧹 Nákupní seznam byl vyčištěn.")
     except Exception as error:
         print(f"⚠️ Chyba při čištění nákupního seznamu: {error}")
 
@@ -93,30 +92,62 @@ async def process_user_input(user_input: str) -> bool:
     if not user_input:
         return True
     
-    # Process the message with the agent
+    # Process the message with the agent using streaming
     try:
         # Add user message to history
         user_message = HumanMessage(content=user_input)
         conversation_history.append(user_message)
         
-        # Get agent response with recursion limit
-        response = await app.ainvoke(
+        print("\n🤔 Přemýšlím... ", end="", flush=True)
+        
+        # Track if we're currently streaming content from the LLM
+        is_streaming_content = False
+        
+        # Stream events from the agent
+        async for event in app.astream_events(
+            {"messages": conversation_history}, 
+            {"recursion_limit": 50},
+            version="v1"
+        ):
+            kind = event["event"]
+            
+            # Handle LLM token streaming
+            if kind == "on_chat_model_stream":
+                data = event.get("data", {})
+                chunk = data.get("chunk")
+                if chunk and hasattr(chunk, 'content') and chunk.content:
+                    print(chunk.content, end="", flush=True)
+                    is_streaming_content = True
+            
+            # Handle tool execution start
+            elif kind == "on_tool_start":
+                if is_streaming_content:
+                    print()  # New line after content streaming
+                    is_streaming_content = False
+                tool_name = event["name"]
+                print(f"\n🔧 Executing tool: {tool_name}")
+            
+            # Handle tool execution end
+            elif kind == "on_tool_end":
+                tool_name = event["name"]
+                print(f"✅ Tool completed: {tool_name}")
+        
+        # Get the final state using ainvoke (not aget_state which requires checkpointer)
+        final_result = await app.ainvoke(
             {"messages": conversation_history}, 
             {"recursion_limit": 50}
         )
         
-        # Get the last message (agent's response)
-        if response["messages"]:
-            agent_response = response["messages"][-1]
-            print(f"\n🤖 RohBot: {agent_response.content}\n")
-            
-            # Add agent response to history
-            conversation_history.append(agent_response)
-        else:
-            print("⚠️ Nepodařilo se získat odpověď od agenta.\n")
+        # Update conversation history with the final response
+        if final_result and "messages" in final_result:
+            conversation_history = final_result["messages"]
+        
+        if is_streaming_content:
+            print()  # New line after streaming
+        print()  # Extra line for spacing
             
     except Exception as error:
-        print(f"❌ Chyba při zpracování dotazu: {error}\n")
+        print(f"\n❌ Chyba při zpracování dotazu: {error}\n")
         
     return True
 

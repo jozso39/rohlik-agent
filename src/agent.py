@@ -17,10 +17,11 @@ load_dotenv()
 tools = mcp_tools
 tool_node = ToolNode(tools)
 
-# Initialize the model
+# Initialize the model with streaming enabled
 model = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0,
+    streaming=True,
 ).bind_tools(tools)
 
 def should_continue(state: MessagesState) -> Literal["tools", "__end__"]:

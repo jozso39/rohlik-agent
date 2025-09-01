@@ -29,6 +29,8 @@ The agent can:
 - Clear the shopping list
 - Remove specific ingredients from shopping list
 - Create structured meal plans with emoji formatting
+- **Real-time streaming responses** - See the agent's thoughts and tool
+  executions as they happen, just like ChatGPT!
 
 ## 📋 Requirements
 
@@ -111,6 +113,11 @@ Start an interactive chat session with the agent:
 python main.py
 ```
 
+The agent features **real-time streaming** - you'll see responses appear
+character by character as the LLM generates them, and you'll get live updates
+when tools are being executed. This provides a ChatGPT-like experience where you
+can see the agent "thinking" in real-time.
+
 Then you can chat naturally in Czech:
 
 ```
@@ -141,11 +148,32 @@ source venv/bin/activate
 python -m pytest tests/ -v
 ```
 
+## 🌊 Streaming Features
+
+The agent implements **real-time token streaming** using LangGraph's streaming
+capabilities:
+
+- **Token-level streaming**: See responses character by character as the LLM
+  generates them
+- **Tool execution tracking**: Live updates when tools are being executed
+- **Event-driven architecture**: Uses LangGraph's `astream_events` for
+  comprehensive streaming
+
+The streaming is implemented using:
+
+- `ChatOpenAI` with `streaming=True` for token-level output
+- LangGraph's `astream_events` API for event-driven streaming
+- Real-time console output with proper flushing for immediate display
+
+This provides a ChatGPT-like experience where users can see the agent "thinking"
+and working in real-time.
+
 ## 📁 Project Structure
 
 ```
 ├── main.py                # Interactive CLI interface (main entry point)
 ├── demo.py                # Demo script with sample interaction
+├── setup.sh               # Automated setup script
 ├── src/
 │   ├── agent.py           # LangGraph agent implementation
 │   ├── tools/
