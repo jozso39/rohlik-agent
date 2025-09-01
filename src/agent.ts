@@ -58,7 +58,7 @@ const systemMessageText =
     "\n  • atd..." +
     "\n\nPokud si uživatel vyžádá recept nebo jídelníček (meal plan), zeptej se jestli chce přidat ingredience na nákupní seznam. " +
     "\nPokud si uživatel vyžádá vytvoření jídelníčku nebo plánu jídel na více dní, rovnou vytvoř i markdown dokument s tímto jídelníčkem";
-"\nVše na co odpovídáš se píše do bash konzole, formátuj odpovědi podle toho (nepoužívej markdown formátování)";
+"\nPOZOR! Vše na co odpovídáš se píše do bash konzole, TAKŽE NEPOUŽÍVEJ MARKDOWN FORMÁTOVÁNÍ! ale můžeš používat emoji";
 
 /**
  * Invokes the model with the current state messages, prepending a system message.

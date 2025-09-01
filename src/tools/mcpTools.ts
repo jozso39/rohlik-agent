@@ -3,16 +3,49 @@ import { z } from "zod";
 
 const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") || "http://localhost:8001";
 
-// Tool for searching recipes by name
+const showExistingRecipeNames = async (MCP_BASE_URL: string) => {
+    const response = await fetch(
+        `${MCP_BASE_URL}/get_recipe_names`,
+    );
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Format the response for better user experience
+    const guidance = {
+        message: "📋 Dostupné názvy receptů:",
+        count: data.count,
+        recipe_names: data.recipe_names,
+        next_step:
+            "Vyber si konkrétní název receptu z tohoto seznamu a použij jej v parametru 'name' pro vyhledání receptu.",
+    };
+
+    return JSON.stringify(guidance, null, 2);
+};
+
+// Tool for searching recipes by name with guided discovery
 const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
     name: "search_recipes_by_recipe_name",
-    description:
-        "Hledej recepty podle názvu (name). Podporuje částečnou shodu a stránkování výsledků (max 10 receptů na stránku). " +
-        "Vrací recepty s informacemi o stránkování - pokud je více výsledků, použij parametr 'page' pro načtení dalších stránek.",
+    description: "Implementuje workflow pro vyhledávání receptů podle názvu. " +
+        "PRVNÍ KROK: Pokud uživatel chce recepty podle názvu, ale nespecifikoval konkrétní název, nastav 'show_available_names' na true pro zobrazení všech dostupných názvů receptů. " +
+        "DRUHÝ KROK: Poté co uživatel vybere konkrétní název z seznamu, hledej podle tohoto názvu. " +
+        "Podporuje částečnou shodu a stránkování výsledků (max 10 receptů na stránku).",
     schema: z.object({
+        show_available_names: z
+            .boolean()
+            .optional()
+            .describe(
+                "Nastav na true pro zobrazení všech dostupných názvů receptů jako první krok",
+            ),
         name: z
             .string()
-            .describe("Vyhledá recepty podle názvu (částečná shoda)"),
+            .optional()
+            .describe(
+                "Konkrétní název receptu pro vyhledání (použij po zobrazení dostupných názvů)",
+            ),
         page: z
             .number()
             .optional()
@@ -20,47 +53,125 @@ const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
                 "Číslo stránky pro stránkování výsledků (výchozí: 1, max 10 receptů na stránku)",
             ),
     }),
-    func: async ({ name, page }) => {
+    func: async ({ show_available_names, name, page }) => {
         try {
-            const params = new URLSearchParams();
-            params.append("name", name);
-            if (page) params.append("page", page.toString());
+            // STEP 1: Show available recipe names if requested
+            if (show_available_names && !name) {
+                return showExistingRecipeNames(MCP_BASE_URL);
+            }
 
-            const response = await fetch(
-                `${MCP_BASE_URL}/search_recipes?${params.toString()}`,
+            // STEP 2: Search by specific recipe name
+            if (name) {
+                const params = new URLSearchParams();
+                params.append("name", name);
+                if (page) params.append("page", page.toString());
+
+                const response = await fetch(
+                    `${MCP_BASE_URL}/search_recipes?${params.toString()}`,
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // FALLBACK: If no recipes found, show available recipe names
+                if (!data.recipes || data.recipes.length === 0) {
+                    console.log(
+                        `No recipes found for "${name}", showing available options`,
+                    );
+
+                    try {
+                        const namesResponse = await fetch(
+                            `${MCP_BASE_URL}/get_recipe_names`,
+                        );
+
+                        if (namesResponse.ok) {
+                            const namesData = await namesResponse.json();
+
+                            // Instead of hardcoded matching, let the agent analyze the available recipes
+                            // and intelligently suggest the best matches
+                            const fallbackResponse = {
+                                task: "intelligent_recipe_matching",
+                                message:
+                                    `❌ Nenašel jsem přesný recept "${name}"`,
+                                search_attempted: name,
+                                available_recipes: {
+                                    count: namesData.count,
+                                    recipe_names: namesData.recipe_names,
+                                },
+                                agent_instruction:
+                                    `Prosím, proanalyzuj všechny dostupné recepty a najdi ty, které nejlépe odpovídají hledanému "${name}". 
+                                Uvažuj o:
+                                - Synonymech a alternativních názvech (např. "gulášovka" = "gulášová polévka")
+                                - Podobných pokrmech nebo variantách
+                                - Částečných shodách v názvu
+                                Vrať maximálně 3-5 nejlepších návrhů s vysvětlením, proč jsou relevantní.`,
+                                next_step:
+                                    "Agent analyzuje dostupné recepty a navrhne nejlepší shody.",
+                            };
+
+                            return JSON.stringify(fallbackResponse, null, 2);
+                        }
+                    } catch (fallbackError) {
+                        console.error(
+                            "Fallback to get_recipe_names failed:",
+                            fallbackError,
+                        );
+                    }
+
+                    // If fallback also fails, return original empty result with guidance
+                    return JSON.stringify(
+                        {
+                            ...data,
+                            fallback_message:
+                                `Nenašel jsem recept "${name}". Zkus použít show_available_names: true pro zobrazení dostupných názvů.`,
+                        },
+                        null,
+                        2,
+                    );
+                }
+
+                // SUCCESS: Recipes found, handle pagination info
+                if (data.pagination) {
+                    const { pagination } = data;
+                    let paginationInfo =
+                        `\n📄 Stránka ${pagination.page} z ${pagination.total_pages} (celkem ${pagination.total} receptů)`;
+
+                    if (pagination.has_next) {
+                        paginationInfo +=
+                            `\n➡️ Pro další recepty použij page: ${
+                                pagination.page + 1
+                            }`;
+                    }
+                    if (pagination.has_prev) {
+                        paginationInfo +=
+                            `\n⬅️ Pro předchozí recepty použij page: ${
+                                pagination.page - 1
+                            }`;
+                    }
+
+                    // Add pagination info to the response
+                    data.pagination_info = paginationInfo;
+                }
+
+                return JSON.stringify(data, null, 2);
+            }
+
+            // ERROR: Neither option was used correctly
+            return JSON.stringify(
+                {
+                    error:
+                        "Musíš použít buď 'show_available_names: true' pro zobrazení dostupných názvů, nebo 'name' pro vyhledání konkrétního receptu.",
+                    workflow:
+                        "1. Nejdříve nastav show_available_names: true\n2. Pak použij konkrétní název z seznamu v parametru name",
+                },
+                null,
+                2,
             );
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // Handle pagination info for better user experience
-            if (data.pagination) {
-                const { pagination } = data;
-                let paginationInfo =
-                    `\n📄 Stránka ${pagination.page} z ${pagination.total_pages} (celkem ${pagination.total} receptů)`;
-
-                if (pagination.has_next) {
-                    paginationInfo += `\n➡️ Pro další recepty použij page: ${
-                        pagination.page + 1
-                    }`;
-                }
-                if (pagination.has_prev) {
-                    paginationInfo +=
-                        `\n⬅️ Pro předchozí recepty použij page: ${
-                            pagination.page - 1
-                        }`;
-                }
-
-                // Add pagination info to the response
-                data.pagination_info = paginationInfo;
-            }
-
-            return JSON.stringify(data, null, 2);
         } catch (error) {
-            return `Error searching recipes by name: ${
+            return `Error in recipe name workflow: ${
                 error instanceof Error ? error.message : "Unknown error"
             }`;
         }
