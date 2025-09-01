@@ -135,6 +135,20 @@ python -m unittest tests/test_api.py
     }
     ```
 
+### Get Recipe Names
+- **URL**: `/get_recipe_names`
+- **Method**: `GET`
+- **Description**: Get all recipe names from all recipes
+- **Success Response**:
+  - **Code**: 200
+  - **Content**:
+    ```json
+    {
+        "count": 100,
+        "recipe_names": ["Alaskaská pizza", "Asijský burger", "Bramboračka", "Karbanátky", "..."]
+    }
+    ```
+
 ### Add Multiple Ingredients to Shopping List
 - **URL**: `/add_ingredients`
 - **Method**: `POST`

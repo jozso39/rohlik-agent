@@ -105,6 +105,35 @@ paths:
                       "tučné",
                     ]
 
+  /get_recipe_names:
+    get:
+      summary: Get all recipe names
+      description: Returns a list of all recipe names from all recipes
+      responses:
+        "200":
+          description: A list of all recipe names
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Number of recipes
+                    example: 100
+                  recipe_names:
+                    type: array
+                    items:
+                      type: string
+                    description: Sorted list of all recipe names
+                    example: [
+                      "Alaskaská pizza",
+                      "Asijský burger",
+                      "Bramboračka",
+                      "Karbanátky",
+                      "Špagety Carbonara",
+                    ]
+
   /search_recipes:
     get:
       summary: Search recipes with pagination

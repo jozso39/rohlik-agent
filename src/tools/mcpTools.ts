@@ -4,8 +4,8 @@ import { z } from "zod";
 const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") || "http://localhost:8001";
 
 // Tool for searching recipes by name
-const searchRecipesByNameTool = new DynamicStructuredTool({
-    name: "search_recipes_by_name",
+const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
+    name: "search_recipes_by_recipe_name",
     description:
         "Hledej recepty podle názvu (name). Podporuje částečnou shodu a stránkování výsledků (max 10 receptů na stránku). " +
         "Vrací recepty s informacemi o stránkování - pokud je více výsledků, použij parametr 'page' pro načtení dalších stránek.",
@@ -576,7 +576,7 @@ const createMealPlanTool = new DynamicStructuredTool({
 
 // Export all MCP tools as an array
 export const mcpTools = [
-    searchRecipesByNameTool,
+    searchRecipesByRecipeNameTool,
     searchRecipesTool,
     getAllIngredientsTool,
     getAllDietsTool,
