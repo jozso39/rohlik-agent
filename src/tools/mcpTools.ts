@@ -1,5 +1,10 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
+import {
+    addPaginationInfo,
+    handleRecipeSearchFallback,
+    type RecipeSearchData,
+} from "./recipeSearchHelpers.ts";
 
 const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") || "http://localhost:8001";
 
@@ -75,136 +80,20 @@ const searchRecipesByRecipeNameTool = new DynamicStructuredTool({
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const data = await response.json();
+                const data = await response.json() as RecipeSearchData;
 
-                // FALLBACK: If no recipes found, show available recipe names
+                // FALLBACK: If no recipes found, use intelligent recipe matching
                 if (!data.recipes || data.recipes.length === 0) {
-                    try {
-                        const namesResponse = await fetch(
-                            `${MCP_BASE_URL}/get_recipe_names`,
-                        );
-
-                        if (namesResponse.ok) {
-                            const namesData = await namesResponse.json();
-
-                            // Instead of showing all recipes to the agent, let's do basic filtering first
-                            // and only pass a manageable subset for intelligent analysis
-                            const searchTerm = name.toLowerCase();
-
-                            // Basic filtering to reduce the list before sending to agent
-                            const relevantRecipes = namesData.recipe_names
-                                .filter((recipeName: string) => {
-                                    const recipeNameLower = recipeName
-                                        .toLowerCase();
-                                    // Check for partial matches or common word fragments
-                                    return recipeNameLower.includes(
-                                        searchTerm,
-                                    ) ||
-                                        searchTerm.includes(recipeNameLower) ||
-                                        // Check individual words for broader matching
-                                        searchTerm.split(/\s+/).some((word) =>
-                                            word.length >= 3 &&
-                                            recipeNameLower.includes(word)
-                                        ) ||
-                                        recipeNameLower.split(/\s+/).some(
-                                            (word) =>
-                                                word.length >= 3 &&
-                                                searchTerm.includes(word),
-                                        );
-                                }).slice(0, 20); // Limit to max 20 for agent analysis
-
-                            if (relevantRecipes.length > 0) {
-                                // Found some potentially relevant recipes - let agent analyze them
-                                const fallbackResponse = {
-                                    task: "intelligent_recipe_matching",
-                                    message:
-                                        `❌ Nenašel jsem přesný recept "${name}"`,
-                                    search_attempted: name,
-                                    available_recipes: {
-                                        count: relevantRecipes.length,
-                                        recipe_names: relevantRecipes,
-                                        note:
-                                            `Zobrazuji ${relevantRecipes.length} nejrelevantnějších receptů z celkového počtu ${namesData.count}`,
-                                    },
-                                    agent_instruction:
-                                        `Proanalyzuj tyto recepty a najdi ty, které nejlépe odpovídají hledanému "${name}". 
-                                    Uvažuj o synonymech, podobných pokrmech a variantách.
-                                    Vrať maximálně 3-5 nejlepších návrhů s krátkým vysvětlením, proč jsou relevantní.`,
-                                    next_step:
-                                        "Agent analyzuje vyfiltrované recepty a navrhne nejlepší shody.",
-                                };
-                                return JSON.stringify(
-                                    fallbackResponse,
-                                    null,
-                                    2,
-                                );
-                            } else {
-                                // No relevant recipes found - suggest alternative approach
-                                // TODO: use tavily search fallback to look for similar recipes and compare this with the list of existing recipes
-                                const fallbackResponse = {
-                                    message:
-                                        `❓ Nenašel jsem recepty podobné "${name}"`,
-                                    search_attempted: name,
-                                    suggestion:
-                                        "Tento recept není v naší databázi. Zkus:",
-                                    alternatives: [
-                                        "Použít obecnější termíny (např. 'polévka', 'hlavní chod', 'desert')",
-                                        "Hledat podle ingrediencí které používá tento pokrm",
-                                        "Hledat podle typu kuchyně nebo diety",
-                                    ],
-                                    next_step:
-                                        "Nebo řekni mi více o tom, jaký typ jídla hledáš a já ti navrhnu podobné recepty.",
-                                };
-                                return JSON.stringify(
-                                    fallbackResponse,
-                                    null,
-                                    2,
-                                );
-                            }
-                        }
-                    } catch (fallbackError) {
-                        console.error(
-                            "Fallback to get_recipe_names failed:",
-                            fallbackError,
-                        );
-                    }
-
-                    // If fallback also fails, return original empty result with guidance
-                    return JSON.stringify(
-                        {
-                            ...data,
-                            fallback_message:
-                                `Nenašel jsem recept "${name}". Zkus použít show_available_names: true pro zobrazení dostupných názvů.`,
-                        },
-                        null,
-                        2,
+                    return await handleRecipeSearchFallback(
+                        name,
+                        MCP_BASE_URL,
+                        data,
                     );
                 }
 
-                // SUCCESS: Recipes found, handle pagination info
-                if (data.pagination) {
-                    const { pagination } = data;
-                    let paginationInfo =
-                        `\n📄 Stránka ${pagination.page} z ${pagination.total_pages} (celkem ${pagination.total} receptů)`;
-
-                    if (pagination.has_next) {
-                        paginationInfo +=
-                            `\n➡️ Pro další recepty použij page: ${
-                                pagination.page + 1
-                            }`;
-                    }
-                    if (pagination.has_prev) {
-                        paginationInfo +=
-                            `\n⬅️ Pro předchozí recepty použij page: ${
-                                pagination.page - 1
-                            }`;
-                    }
-
-                    // Add pagination info to the response
-                    data.pagination_info = paginationInfo;
-                }
-
-                return JSON.stringify(data, null, 2);
+                // SUCCESS: Recipes found, add pagination info and return
+                const dataWithPagination = addPaginationInfo(data);
+                return JSON.stringify(dataWithPagination, null, 2);
             }
 
             // ERROR: Neither option was used correctly
@@ -295,31 +184,11 @@ const searchRecipesTool = new DynamicStructuredTool({
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
+            const data = await response.json() as RecipeSearchData;
 
-            // Handle pagination info for better user experience
-            if (data.pagination) {
-                const { pagination } = data;
-                let paginationInfo =
-                    `\n📄 Stránka ${pagination.page} z ${pagination.total_pages} (celkem ${pagination.total} receptů)`;
-
-                if (pagination.has_next) {
-                    paginationInfo += `\n➡️ Pro další recepty použij page: ${
-                        pagination.page + 1
-                    }`;
-                }
-                if (pagination.has_prev) {
-                    paginationInfo +=
-                        `\n⬅️ Pro předchozí recepty použij page: ${
-                            pagination.page - 1
-                        }`;
-                }
-
-                // Add pagination info to the response
-                data.pagination_info = paginationInfo;
-            }
-
-            return JSON.stringify(data, null, 2);
+            // Handle pagination info for better user experience using helper
+            const dataWithPagination = addPaginationInfo(data);
+            return JSON.stringify(dataWithPagination, null, 2);
         } catch (error) {
             return `Error searching recipes: ${
                 error instanceof Error ? error.message : "Unknown error"
