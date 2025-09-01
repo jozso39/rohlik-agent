@@ -3,12 +3,78 @@ import { z } from "zod";
 
 const MCP_BASE_URL = Deno.env.get("MCP_BASE_URL") || "http://localhost:8001";
 
-// Tool for searching recipes
+// Tool for searching recipes by name
+const searchRecipesByNameTool = new DynamicStructuredTool({
+    name: "search_recipes_by_name",
+    description:
+        "Hledej recepty podle názvu (name). Podporuje částečnou shodu a stránkování výsledků (max 10 receptů na stránku). " +
+        "Vrací recepty s informacemi o stránkování - pokud je více výsledků, použij parametr 'page' pro načtení dalších stránek.",
+    schema: z.object({
+        name: z
+            .string()
+            .describe("Vyhledá recepty podle názvu (částečná shoda)"),
+        page: z
+            .number()
+            .optional()
+            .describe(
+                "Číslo stránky pro stránkování výsledků (výchozí: 1, max 10 receptů na stránku)",
+            ),
+    }),
+    func: async ({ name, page }) => {
+        try {
+            const params = new URLSearchParams();
+            params.append("name", name);
+            if (page) params.append("page", page.toString());
+
+            const response = await fetch(
+                `${MCP_BASE_URL}/search_recipes?${params.toString()}`,
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Handle pagination info for better user experience
+            if (data.pagination) {
+                const { pagination } = data;
+                let paginationInfo =
+                    `\n📄 Stránka ${pagination.page} z ${pagination.total_pages} (celkem ${pagination.total} receptů)`;
+
+                if (pagination.has_next) {
+                    paginationInfo += `\n➡️ Pro další recepty použij page: ${
+                        pagination.page + 1
+                    }`;
+                }
+                if (pagination.has_prev) {
+                    paginationInfo +=
+                        `\n⬅️ Pro předchozí recepty použij page: ${
+                            pagination.page - 1
+                        }`;
+                }
+
+                // Add pagination info to the response
+                data.pagination_info = paginationInfo;
+            }
+
+            return JSON.stringify(data, null, 2);
+        } catch (error) {
+            return `Error searching recipes by name: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`;
+        }
+    },
+});
+
+// Tool for searching recipes by criteria (excluding name)
 const searchRecipesTool = new DynamicStructuredTool({
     name: "search_recipes",
     description:
-        "Hledej recepty podle diety (diet), typu jídle nebo chodu (meal_type) nebo jména (name). Parametry vyhledávání se dají kombinovat." +
-        "Užitečné když chcete najít recepty podle konkrétních kritérií.",
+        "Hledej recepty podle diety (diet), typu jídle nebo chodu (meal_type), nebo ingrediencí. Parametry vyhledávání se dají kombinovat. " +
+        "Podporuje filtrování podle ingrediencí které mají/nemají být v receptu a stránkování výsledků (max 10 receptů na stránku). " +
+        "Vrací recepty s informacemi o stránkování - pokud je více výsledků, použij parametr 'page' pro načtení dalších stránek. " +
+        "Pro vyhledávání podle názvu použij search_recipes_by_name.",
     schema: z.object({
         diet: z
             .string()
@@ -20,19 +86,47 @@ const searchRecipesTool = new DynamicStructuredTool({
             .string()
             .optional()
             .describe(
-                "Vrátí filtrované recepty podle typu jídla (meal type), Možnosti: desert', 'dochucovadlo', 'hlavní chod', 'polévka', 'pomazánka', 'předkrm', 'příloha', 'salát', 'snídaně'",
+                "Vrátí filtrované recepty podle typu jídla (meal type), Možnosti: 'desert', 'dochucovadlo', 'hlavní chod', 'polévka', 'pomazánka', 'předkrm', 'příloha', 'salát', 'snídaně'",
             ),
-        name: z
+        includes_ingredients: z
             .string()
             .optional()
-            .describe("Vyhledá recepty podle názvu (částečná shoda)"),
+            .describe(
+                "Seznam ingrediencí oddělených čárkou, které MUSÍ být v receptu (např. 'Cibule,Máslo,Česnek')",
+            ),
+        excludes_ingredients: z
+            .string()
+            .optional()
+            .describe(
+                "Seznam ingrediencí oddělených čárkou, které NESMÍ být v receptu (např. 'Mléko,Vejce')",
+            ),
+        page: z
+            .number()
+            .optional()
+            .describe(
+                "Číslo stránky pro stránkování výsledků (výchozí: 1, max 10 receptů na stránku)",
+            ),
     }),
-    func: async ({ diet, meal_type, name }) => {
+    func: async (
+        {
+            diet,
+            meal_type,
+            includes_ingredients,
+            excludes_ingredients,
+            page,
+        },
+    ) => {
         try {
             const params = new URLSearchParams();
             if (diet) params.append("diet", diet);
             if (meal_type) params.append("meal_type", meal_type);
-            if (name) params.append("name", name);
+            if (includes_ingredients) {
+                params.append("includes_ingredients", includes_ingredients);
+            }
+            if (excludes_ingredients) {
+                params.append("excludes_ingredients", excludes_ingredients);
+            }
+            if (page) params.append("page", page.toString());
 
             const response = await fetch(
                 `${MCP_BASE_URL}/search_recipes?${params.toString()}`,
@@ -43,9 +137,80 @@ const searchRecipesTool = new DynamicStructuredTool({
             }
 
             const data = await response.json();
+
+            // Handle pagination info for better user experience
+            if (data.pagination) {
+                const { pagination } = data;
+                let paginationInfo =
+                    `\n📄 Stránka ${pagination.page} z ${pagination.total_pages} (celkem ${pagination.total} receptů)`;
+
+                if (pagination.has_next) {
+                    paginationInfo += `\n➡️ Pro další recepty použij page: ${
+                        pagination.page + 1
+                    }`;
+                }
+                if (pagination.has_prev) {
+                    paginationInfo +=
+                        `\n⬅️ Pro předchozí recepty použij page: ${
+                            pagination.page - 1
+                        }`;
+                }
+
+                // Add pagination info to the response
+                data.pagination_info = paginationInfo;
+            }
+
             return JSON.stringify(data, null, 2);
         } catch (error) {
             return `Error searching recipes: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`;
+        }
+    },
+});
+
+// Tool for getting all available ingredients
+const getAllIngredientsTool = new DynamicStructuredTool({
+    name: "get_all_ingredients",
+    description:
+        "Vrátí seznam všech dostupných ingrediencí z databáze receptů. Užitečné pro zjištění, které ingredience jsou k dispozici nebo pro návrhy ingrediencí uživateli.",
+    schema: z.object({}),
+    func: async () => {
+        try {
+            const response = await fetch(`${MCP_BASE_URL}/get_all_ingredients`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return JSON.stringify(data, null, 2);
+        } catch (error) {
+            return `Error getting ingredients: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`;
+        }
+    },
+});
+
+// Tool for getting all available diet types
+const getAllDietsTool = new DynamicStructuredTool({
+    name: "get_all_diets",
+    description:
+        "Vrátí seznam všech dostupných typů diet z databáze receptů. Užitečné pro zjištění dostupných dietních kategorií nebo pro návrhy uživateli.",
+    schema: z.object({}),
+    func: async () => {
+        try {
+            const response = await fetch(`${MCP_BASE_URL}/get_all_diets`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return JSON.stringify(data, null, 2);
+        } catch (error) {
+            return `Error getting diets: ${
                 error instanceof Error ? error.message : "Unknown error"
             }`;
         }
@@ -411,7 +576,10 @@ const createMealPlanTool = new DynamicStructuredTool({
 
 // Export all MCP tools as an array
 export const mcpTools = [
+    searchRecipesByNameTool,
     searchRecipesTool,
+    getAllIngredientsTool,
+    getAllDietsTool,
     addIngredientsToShoppingListTool,
     removeIngredientsFromShoppingListTool,
     getShoppingListTool,
