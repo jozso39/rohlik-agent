@@ -47,27 +47,68 @@ paths:
                 properties:
                   error:
                     type: string
-  /get_recipes:
+  /get_all_ingredients:
     get:
-      summary: Get all recipes
-      description: Returns a list of all available recipes
+      summary: Get all ingredients
+      description: Returns a list of all unique ingredients from all recipes
       responses:
         "200":
-          description: A list of recipes
+          description: A list of all unique ingredients
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  recipes:
+                  count:
+                    type: integer
+                    description: Number of unique ingredients
+                    example: 125
+                  ingredients:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Recipe"
+                      type: string
+                    description: Sorted list of all unique ingredients
+                    example: [
+                      "Badyán",
+                      "Bobkový list",
+                      "Cibule",
+                      "Citron",
+                      "Cukr krupice",
+                    ]
+
+  /get_all_diets:
+    get:
+      summary: Get all diet types
+      description: Returns a list of all unique diet types from all recipes
+      responses:
+        "200":
+          description: A list of all unique diet types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Number of unique diet types
+                    example: 8
+                  diets:
+                    type: array
+                    items:
+                      type: string
+                    description: Sorted list of all unique diet types
+                    example: [
+                      "bezlepkové",
+                      "high-protein",
+                      "low-carb",
+                      "masité",
+                      "tučné",
+                    ]
 
   /search_recipes:
     get:
-      summary: Search recipes
-      description: Search recipes by diet, meal type, and/or name
+      summary: Search recipes with pagination
+      description: Search recipes by diet, meal type, name, and/or ingredient filters with pagination (10 recipes per page)
       parameters:
         - name: diet
           in: query
@@ -87,21 +128,43 @@ paths:
           required: false
           schema:
             type: string
+        - name: includes_ingredients
+          in: query
+          description: Comma-separated list of ingredients that must be present in the recipe
+          required: false
+          schema:
+            type: string
+            example: "Cibule,Máslo,Česnek"
+        - name: excludes_ingredients
+          in: query
+          description: Comma-separated list of ingredients that must NOT be present in the recipe
+          required: false
+          schema:
+            type: string
+            example: "Mléko,Vejce"
+        - name: page
+          in: query
+          description: Page number for pagination (default is 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
       responses:
         "200":
-          description: Search results
+          description: Search results with pagination
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  count:
-                    type: integer
-                    description: Number of recipes found
                   recipes:
                     type: array
                     items:
                       $ref: "#/components/schemas/Recipe"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInfo"
         "400":
           description: Bad request - missing search parameters
           content:
@@ -111,7 +174,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Please provide at least one search parameter: 'diet', 'meal_type', or 'name'"
+                    example: "Please provide at least one search parameter: 'diet', 'meal_type', 'name', 'includes_ingredients', or 'excludes_ingredients'"
 
   /add_ingredients:
     post:
@@ -225,3 +288,38 @@ components:
         - steps
         - diet
         - meal_type
+
+    PaginationInfo:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        per_page:
+          type: integer
+          description: Number of items per page (fixed at 10)
+          example: 10
+        total:
+          type: integer
+          description: Total number of items available
+          example: 37
+        total_pages:
+          type: integer
+          description: Total number of pages available
+          example: 4
+        has_next:
+          type: boolean
+          description: Whether there is a next page available
+          example: true
+        has_prev:
+          type: boolean
+          description: Whether there is a previous page available
+          example: false
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+        - has_next
+        - has_prev
