@@ -8,8 +8,7 @@ const searchRecipesTool = new DynamicStructuredTool({
     name: "search_recipes",
     description:
         "Hledej recepty podle diety (diet), typu jídle nebo chodu (meal_type) nebo jména (name). Parametry vyhledávání se dají kombinovat." +
-        "Užitečné když chcete najít recepty podle konkrétních kritérií." +
-        "Pokud nenajdeš žádné recepty, můžeš použít endpoint /get_all_recipes",
+        "Užitečné když chcete najít recepty podle konkrétních kritérií.",
     schema: z.object({
         diet: z
             .string()
@@ -47,30 +46,6 @@ const searchRecipesTool = new DynamicStructuredTool({
             return JSON.stringify(data, null, 2);
         } catch (error) {
             return `Error searching recipes: ${
-                error instanceof Error ? error.message : "Unknown error"
-            }`;
-        }
-    },
-});
-
-// Tool for getting all recipes
-const getAllRecipesTool = new DynamicStructuredTool({
-    name: "get_all_recipes",
-    description: "Vrátí seznam všech dostupných receptů v databázi." +
-        "Seznam receptů je příliš dlouhý, proto tento nástroj používej pouze pokud nenajdeš žádné recepty přes endpoint /search_recipes",
-    schema: z.object({}),
-    func: async () => {
-        try {
-            const response = await fetch(`${MCP_BASE_URL}/get_recipes`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return JSON.stringify(data, null, 2);
-        } catch (error) {
-            return `Error getting recipes: ${
                 error instanceof Error ? error.message : "Unknown error"
             }`;
         }
@@ -437,7 +412,6 @@ const createMealPlanTool = new DynamicStructuredTool({
 // Export all MCP tools as an array
 export const mcpTools = [
     searchRecipesTool,
-    getAllRecipesTool,
     addIngredientsToShoppingListTool,
     removeIngredientsFromShoppingListTool,
     getShoppingListTool,
